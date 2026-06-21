@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+package-lock.json
+yarn.lock
+
+# Environment
+.env
+.env.local
+.env.development
+.env.production
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Database
+*.sql
+*.dump
+*.backup
+
+# Uploads
+uploads/
+tmp/
+temp/
+
+# OS / Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Testing
+coverage/
+.nyc_output/
+
+# Build
+dist/
+build/
+.vercel/
+.netlify/
+
+# Misc
+*.pem
+*.cert
+*.key
