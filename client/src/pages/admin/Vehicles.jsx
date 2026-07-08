@@ -8,12 +8,24 @@ export default function AdminVehicles() {
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
-  const [filter, setFilter] = useState('all'); // all, active, inactive
+  const [filter, setFilter] = useState('all');
+
   const [form, setForm] = useState({
-    name: '', type: 'CAR', brand: '', model: '', year: new Date().getFullYear(),
-    seats: 5, transmission: 'AUTOMATIC', fuelType: 'PETROL',
-    pricePerDay: '', location: '', description: '', features: '',
+    name: '',
+    type: 'CAR',
+    brand: '',
+    model: '',
+    year: new Date().getFullYear(),
+    seats: 5,
+    transmission: 'AUTOMATIC',
+    fuelType: 'PETROL',
+    pricePerDay: '',
+    location: '',
+    description: '',
+    features: '',
+    driverPhone: '',
   });
+
   const [images, setImages] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -24,7 +36,6 @@ export default function AdminVehicles() {
   const fetchVehicles = async () => {
     setLoading(true);
     try {
-      // Get all vehicles (including inactive) for admin
       const res = await api.get('/vehicles?limit=100');
       setVehicles(res.data.data || []);
     } catch (error) {
@@ -51,19 +62,27 @@ export default function AdminVehicles() {
         pricePerDay: parseFloat(form.pricePerDay),
         location: form.location,
         description: form.description || '',
-        features: form.features ? form.features.split(',').map(f => f.trim()).filter(Boolean) : [],
+        driverPhone: form.driverPhone || '',
+        features: form.features
+          ? form.features.split(',').map((f) => f.trim()).filter(Boolean)
+          : [],
       };
 
       let res;
+
       if (editingVehicle) {
         if (images.length > 0) {
           const formData = new FormData();
-          Object.keys(data).forEach(key => {
-            formData.append(key, key === 'features' ? JSON.stringify(data[key]) : data[key]);
+          Object.keys(data).forEach((key) => {
+            formData.append(
+              key,
+              key === 'features' ? JSON.stringify(data[key]) : data[key]
+            );
           });
-          images.forEach(img => formData.append('images', img));
+          images.forEach((img) => formData.append('images', img));
+
           res = await api.patch(`/admin/vehicles/${editingVehicle.id}`, formData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            headers: { 'Content-Type': 'multipart/form-data' },
           });
         } else {
           res = await api.patch(`/admin/vehicles/${editingVehicle.id}`, data);
@@ -71,12 +90,18 @@ export default function AdminVehicles() {
         toast.success('Vehicle updated');
       } else {
         const formData = new FormData();
-        Object.keys(data).forEach(key => {
-          formData.append(key, key === 'features' ? JSON.stringify(data[key]) : data[key]);
+        Object.keys(data).forEach((key) => {
+          formData.append(
+            key,
+            key === 'features' ? JSON.stringify(data[key]) : data[key]
+          );
         });
-        if (images.length > 0) images.forEach(img => formData.append('images', img));
+        if (images.length > 0) {
+          images.forEach((img) => formData.append('images', img));
+        }
+
         res = await api.post('/admin/vehicles', formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+          headers: { 'Content-Type': 'multipart/form-data' },
         });
         toast.success('Vehicle created');
       }
@@ -85,20 +110,20 @@ export default function AdminVehicles() {
       resetForm();
       fetchVehicles();
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Operation failed');
+      toast.error(error.response?.data?.message || 'Something went wrong');
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this vehicle?')) return;
+    if (!confirm('Deactivate this vehicle?')) return;
     try {
       await api.delete(`/admin/vehicles/${id}`);
-      toast.success('Vehicle deleted');
+      toast.success('Vehicle deactivated');
       fetchVehicles();
     } catch (error) {
-      toast.error('Delete failed');
+      toast.error('Deactivate failed');
     }
   };
 
@@ -114,9 +139,19 @@ export default function AdminVehicles() {
 
   const resetForm = () => {
     setForm({
-      name: '', type: 'CAR', brand: '', model: '', year: new Date().getFullYear(),
-      seats: 5, transmission: 'AUTOMATIC', fuelType: 'PETROL',
-      pricePerDay: '', location: '', description: '', features: '',
+      name: '',
+      type: 'CAR',
+      brand: '',
+      model: '',
+      year: new Date().getFullYear(),
+      seats: 5,
+      transmission: 'AUTOMATIC',
+      fuelType: 'PETROL',
+      pricePerDay: '',
+      location: '',
+      description: '',
+      features: '',
+      driverPhone: '',
     });
     setImages([]);
     setEditingVehicle(null);
@@ -137,6 +172,7 @@ export default function AdminVehicles() {
       location: vehicle.location || '',
       description: vehicle.description || '',
       features: Array.isArray(vehicle.features) ? vehicle.features.join(', ') : '',
+      driverPhone: vehicle.driverPhone || '',
     });
     setImages([]);
     setShowModal(true);
@@ -147,7 +183,7 @@ export default function AdminVehicles() {
     setShowModal(true);
   };
 
-  const filteredVehicles = vehicles.filter(v => {
+  const filteredVehicles = vehicles.filter((v) => {
     if (filter === 'active') return v.isActive;
     if (filter === 'inactive') return !v.isActive;
     return true;
@@ -163,6 +199,7 @@ export default function AdminVehicles() {
 
   return (
     <div>
+      {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <h1 className="text-2xl font-bold text-slate-900">Manage Vehicles</h1>
         <button
@@ -177,9 +214,9 @@ export default function AdminVehicles() {
       <div className="flex gap-2 mb-6">
         {[
           { id: 'all', label: `All (${vehicles.length})` },
-          { id: 'active', label: `Active (${vehicles.filter(v => v.isActive).length})` },
-          { id: 'inactive', label: `Inactive (${vehicles.filter(v => !v.isActive).length})` },
-        ].map(f => (
+          { id: 'active', label: `Active (${vehicles.filter((v) => v.isActive).length})` },
+          { id: 'inactive', label: `Inactive (${vehicles.filter((v) => !v.isActive).length})` },
+        ].map((f) => (
           <button
             key={f.id}
             onClick={() => setFilter(f.id)}
@@ -194,6 +231,7 @@ export default function AdminVehicles() {
         ))}
       </div>
 
+      {/* Table */}
       <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
@@ -209,19 +247,30 @@ export default function AdminVehicles() {
             </thead>
             <tbody>
               {filteredVehicles.map((vehicle) => (
-                <tr key={vehicle.id} className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50">
+                <tr
+                  key={vehicle.id}
+                  className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50"
+                >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0">
                         {vehicle.images?.[0] ? (
-                          <img src={vehicle.images[0]} alt="" className="w-full h-full object-cover" />
+                          <img
+                            src={vehicle.images[0]}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">No img</div>
+                          <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">
+                            No img
+                          </div>
                         )}
                       </div>
                       <div>
                         <p className="font-medium text-slate-900">{vehicle.name}</p>
-                        <p className="text-slate-500 text-xs">{vehicle.brand} {vehicle.model}</p>
+                        <p className="text-slate-500 text-xs">
+                          {vehicle.brand} {vehicle.model}
+                        </p>
                       </div>
                     </div>
                   </td>
@@ -230,14 +279,20 @@ export default function AdminVehicles() {
                       {vehicle.type}
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-medium text-slate-900">{formatNaira(vehicle.pricePerDay)}</td>
-                  <td className="px-6 py-4 text-slate-600">{vehicle.location || 'N/A'}</td>
+                  <td className="px-6 py-4 font-medium text-slate-900">
+                    {formatNaira(vehicle.pricePerDay)}
+                  </td>
+                  <td className="px-6 py-4 text-slate-600">
+                    {vehicle.location || 'N/A'}
+                  </td>
                   <td className="px-6 py-4">
-                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
-                      vehicle.isActive
-                        ? 'bg-emerald-100 text-emerald-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}>
+                    <span
+                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                        vehicle.isActive
+                          ? 'bg-emerald-100 text-emerald-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}
+                    >
                       {vehicle.isActive ? 'Active' : 'Inactive'}
                     </span>
                   </td>
@@ -275,9 +330,7 @@ export default function AdminVehicles() {
         </div>
 
         {filteredVehicles.length === 0 && (
-          <div className="text-center py-12 text-slate-400">
-            No vehicles found.
-          </div>
+          <div className="text-center py-12 text-slate-400">No vehicles found.</div>
         )}
       </div>
 
@@ -289,7 +342,10 @@ export default function AdminVehicles() {
               <h2 className="text-xl font-bold text-slate-900">
                 {editingVehicle ? 'Edit Vehicle' : 'Add Vehicle'}
               </h2>
-              <button onClick={() => setShowModal(false)} className="text-slate-400 hover:text-slate-600 p-1">
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-slate-400 hover:text-slate-600 p-1"
+              >
                 ✕
               </button>
             </div>
@@ -304,21 +360,31 @@ export default function AdminVehicles() {
                   { name: 'seats', label: 'Seats', type: 'number', required: true },
                   { name: 'pricePerDay', label: 'Price per Day (₦)', type: 'number', required: true },
                   { name: 'location', label: 'Location', type: 'text', required: true },
+                  { name: 'driverPhone', label: 'Driver Phone', type: 'tel', required: false },
                 ].map((field) => (
                   <div key={field.name}>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">{field.label}</label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                      {field.label}
+                    </label>
                     <input
                       type={field.type}
                       required={field.required}
+                      placeholder={
+                        field.name === 'driverPhone' ? '+234 801 234 5678' : undefined
+                      }
                       className="w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 text-slate-900 focus:outline-none focus:border-amber-500"
                       value={form[field.name]}
-                      onChange={(e) => setForm({ ...form, [field.name]: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, [field.name]: e.target.value })
+                      }
                     />
                   </div>
                 ))}
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Type</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Type
+                  </label>
                   <select
                     className="w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 text-slate-900 focus:outline-none focus:border-amber-500"
                     value={form.type}
@@ -334,11 +400,15 @@ export default function AdminVehicles() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Transmission</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Transmission
+                  </label>
                   <select
                     className="w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 text-slate-900 focus:outline-none focus:border-amber-500"
                     value={form.transmission}
-                    onChange={(e) => setForm({ ...form, transmission: e.target.value })}
+                    onChange={(e) =>
+                      setForm({ ...form, transmission: e.target.value })
+                    }
                   >
                     <option value="AUTOMATIC">Automatic</option>
                     <option value="MANUAL">Manual</option>
@@ -346,7 +416,9 @@ export default function AdminVehicles() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Fuel Type</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">
+                    Fuel Type
+                  </label>
                   <select
                     className="w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 text-slate-900 focus:outline-none focus:border-amber-500"
                     value={form.fuelType}
@@ -361,7 +433,9 @@ export default function AdminVehicles() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Description
+                </label>
                 <textarea
                   rows={3}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 text-slate-900 focus:outline-none focus:border-amber-500 resize-none"
@@ -371,7 +445,9 @@ export default function AdminVehicles() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Features (comma separated)</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  Features (comma separated)
+                </label>
                 <input
                   type="text"
                   placeholder="AC, GPS, Bluetooth, Reverse Camera"
@@ -393,7 +469,9 @@ export default function AdminVehicles() {
                   onChange={(e) => setImages(Array.from(e.target.files))}
                 />
                 {images.length > 0 && (
-                  <p className="text-xs text-slate-500 mt-1">{images.length} file(s) selected</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {images.length} file(s) selected
+                  </p>
                 )}
               </div>
 
@@ -402,7 +480,11 @@ export default function AdminVehicles() {
                 disabled={submitting}
                 className="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-slate-300 text-slate-950 py-3 rounded-xl font-bold transition-colors"
               >
-                {submitting ? 'Saving...' : (editingVehicle ? 'Update Vehicle' : 'Create Vehicle')}
+                {submitting
+                  ? 'Saving...'
+                  : editingVehicle
+                  ? 'Update Vehicle'
+                  : 'Create Vehicle'}
               </button>
             </form>
           </div>

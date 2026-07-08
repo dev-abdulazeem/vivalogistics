@@ -17,7 +17,9 @@ router.delete('/vehicles/:id', authenticate, authorize('ADMIN'), vehicleControll
 // Bookings
 router.get('/bookings', authenticate, authorize('ADMIN'), adminController.getAllBookings);
 router.patch('/bookings/:id/status', authenticate, authorize('ADMIN'), adminController.updateBookingStatus);
-router.delete('/bookings/:id', authenticate, authorize('ADMIN'), adminController.deleteBooking); // ADD THIS
+router.patch('/bookings/:id/verify-return', authenticate, authorize('ADMIN'), adminController.verifyBookingReturn);
+router.patch('/bookings/:id/auto-complete', authenticate, authorize('ADMIN'), adminController.adminAutoCompleteBooking);
+router.delete('/bookings/:id', authenticate, authorize('ADMIN'), adminController.deleteBooking);
 
 // Users
 router.get('/users', authenticate, authorize('ADMIN'), adminController.getAllUsers);

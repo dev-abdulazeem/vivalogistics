@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { formatNaira } from '../utils/formatCurrency';
 import { format } from 'date-fns';
-import { Calendar, MapPin, ArrowRight } from 'lucide-react';
+import { Calendar, MapPin, ArrowRight, CheckCircle, AlertTriangle, Clock } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export default function MyBookings() {
@@ -36,12 +36,27 @@ export default function MyBookings() {
     }
   };
 
+  const handleMarkComplete = async (id) => {
+    if (!confirm('Mark this vehicle as returned? This will notify admin for verification.')) return;
+    try {
+      const res = await api.patch(`/bookings/${id}/mark-complete`);
+      toast.success(res.data.message);
+      fetchBookings();
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to mark as complete');
+    }
+  };
+
   const statusConfig = {
-    CONFIRMED: { label: 'Confirmed', dot: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700' },
-    PENDING: { label: 'Pending', dot: 'bg-amber-500', bg: 'bg-amber-50', text: 'text-amber-700' },
-    ACTIVE: { label: 'Active', dot: 'bg-blue-500', bg: 'bg-blue-50', text: 'text-blue-700' },
-    CANCELLED: { label: 'Cancelled', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-700' },
-    COMPLETED: { label: 'Completed', dot: 'bg-slate-500', bg: 'bg-slate-100', text: 'text-slate-700' },
+    PENDING: { label: 'Pending Payment', dot: 'bg-amber-500', bg: 'bg-amber-50', text: 'text-amber-700', icon: Clock },
+    CONFIRMED: { label: 'Confirmed', dot: 'bg-emerald-500', bg: 'bg-emerald-50', text: 'text-emerald-700', icon: CheckCircle },
+    ACTIVE: { label: 'Active — In Use', dot: 'bg-blue-500', bg: 'bg-blue-50', text: 'text-blue-700', icon: CheckCircle },
+    CLIENT_MARKED_COMPLETE: { label: 'Awaiting Verification', dot: 'bg-purple-500', bg: 'bg-purple-50', text: 'text-purple-700', icon: Clock },
+    PENDING_VERIFICATION: { label: 'Extra Charges Pending', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-700', icon: AlertTriangle },
+    COMPLETED: { label: 'Completed', dot: 'bg-slate-500', bg: 'bg-slate-100', text: 'text-slate-700', icon: CheckCircle },
+    AUTO_COMPLETED: { label: 'Auto-Completed', dot: 'bg-slate-400', bg: 'bg-slate-100', text: 'text-slate-600', icon: CheckCircle },
+    CANCELLED: { label: 'Cancelled', dot: 'bg-red-500', bg: 'bg-red-50', text: 'text-red-700', icon: AlertTriangle },
+    REFUNDED: { label: 'Refunded', dot: 'bg-slate-400', bg: 'bg-slate-100', text: 'text-slate-600', icon: CheckCircle },
   };
 
   if (loading) {
@@ -54,7 +69,6 @@ export default function MyBookings() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
       <div className="bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-6 lg:px-8 py-8">
           <h1 className="text-3xl font-bold text-slate-900">My Bookings</h1>
@@ -77,6 +91,7 @@ export default function MyBookings() {
           <div className="space-y-4">
             {bookings.map((booking) => {
               const status = statusConfig[booking.status] || statusConfig.PENDING;
+              const StatusIcon = status.icon;
 
               return (
                 <div
@@ -108,7 +123,7 @@ export default function MyBookings() {
                             </p>
                           </div>
                           <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${status.bg} ${status.text}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${status.dot}`} />
+                            <StatusIcon className="w-3 h-3" />
                             {status.label}
                           </div>
                         </div>
@@ -127,6 +142,36 @@ export default function MyBookings() {
                           </div>
                         </div>
 
+                        {/* Extra charges warning */}
+                        {(booking.status === 'PENDING_VERIFICATION' || booking.status === 'AUTO_COMPLETED') && Number(booking.extraCharges) > 0 && (
+                          <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="flex items-start gap-2">
+                              <AlertTriangle className="w-4 h-4 text-red-500 shrink-0 mt-0.5" />
+                              <div>
+                                <p className="text-red-700 text-sm font-medium">Extra charges applied</p>
+                                <p className="text-red-600 text-xs mt-0.5">
+                                  {booking.extraChargeDays} day(s) overdue — {formatNaira(booking.extraCharges)}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Verification pending notice */}
+                        {booking.status === 'CLIENT_MARKED_COMPLETE' && (
+                          <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+                            <div className="flex items-start gap-2">
+                              <Clock className="w-4 h-4 text-purple-500 shrink-0 mt-0.5" />
+                              <div>
+                                <p className="text-purple-700 text-sm font-medium">Awaiting admin verification</p>
+                                <p className="text-purple-600 text-xs mt-0.5">
+                                  Admin will verify your return within 48 hours.
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
                         {/* Divider */}
                         <div className="border-t border-slate-100 my-4" />
 
@@ -139,6 +184,11 @@ export default function MyBookings() {
                             <p className="text-slate-400 text-sm">
                               {booking.totalDays} day{booking.totalDays !== 1 ? 's' : ''}
                             </p>
+                            {Number(booking.extraCharges) > 0 && (
+                              <p className="text-red-600 text-xs font-medium mt-1">
+                                + {formatNaira(booking.extraCharges)} extra
+                              </p>
+                            )}
                           </div>
 
                           <div className="flex items-center gap-3">
@@ -161,7 +211,19 @@ export default function MyBookings() {
                               </>
                             )}
 
-                            {booking.status === 'CONFIRMED' && (
+                            {booking.status === 'ACTIVE' && (
+                              <>
+                                <span className="text-slate-300">|</span>
+                                <button
+                                  onClick={() => handleMarkComplete(booking.id)}
+                                  className="text-sm font-medium text-emerald-600 hover:text-emerald-700 transition-colors"
+                                >
+                                  Mark as Returned
+                                </button>
+                              </>
+                            )}
+
+                            {(booking.status === 'CONFIRMED' || booking.status === 'COMPLETED') && (
                               <>
                                 <span className="text-slate-300">|</span>
                                 <Link

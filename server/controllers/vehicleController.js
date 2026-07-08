@@ -2,7 +2,6 @@ const { z } = require('zod');
 const prisma = require('../config/database');
 const { uploadToCloudinary, deleteImage } = require('../utils/cloudinary');
 
-// Helper to parse features from various formats
 const parseFeatures = (features) => {
   if (!features) return [];
   if (Array.isArray(features)) return features;
@@ -11,7 +10,6 @@ const parseFeatures = (features) => {
       const parsed = JSON.parse(features);
       return Array.isArray(parsed) ? parsed : [features];
     } catch {
-      // It's a comma-separated string
       return features.split(',').map(f => f.trim()).filter(Boolean);
     }
   }
@@ -30,14 +28,14 @@ const vehicleSchema = z.object({
   pricePerDay: z.coerce.number().positive(),
   location: z.string().min(1),
   description: z.string().optional().nullable(),
-  features: z.any().optional(), // We'll parse manually
+  features: z.any().optional(),
+  driverPhone: z.string().optional().nullable(), // NEW: Driver contact number
   isAvailable: z.coerce.boolean().optional(),
 });
 
-// CREATE SINGLE VEHICLE (Admin)
+// CREATE SINGLE VEHICLE
 const createVehicle = async (req, res) => {
   try {
-    // Parse features before validation
     const rawData = { ...req.body };
     rawData.features = parseFeatures(rawData.features);
     rawData.year = parseInt(rawData.year);
@@ -46,7 +44,6 @@ const createVehicle = async (req, res) => {
 
     const data = vehicleSchema.parse(rawData);
     
-    // Upload images to Cloudinary from memory buffer
     const images = [];
     if (req.files?.length > 0) {
       for (const file of req.files) {
@@ -68,6 +65,7 @@ const createVehicle = async (req, res) => {
         pricePerDay: data.pricePerDay,
         location: data.location,
         description: data.description,
+        driverPhone: data.driverPhone || null, // NEW
         images,
         features: data.features || [],
       },
@@ -83,14 +81,14 @@ const createVehicle = async (req, res) => {
   }
 };
 
-// BULK CREATE VEHICLES (Admin) - JSON array
+// BULK CREATE
 const createVehiclesBulk = async (req, res) => {
   try {
     const vehicles = z.array(vehicleSchema).parse(req.body.vehicles);
     
     const created = await prisma.$transaction(
       vehicles.map(v => prisma.vehicle.create({
-        data: { ...v, images: [], features: v.features || [] }
+        data: { ...v, images: [], features: v.features || [], driverPhone: v.driverPhone || null }
       }))
     );
 
@@ -107,20 +105,13 @@ const createVehiclesBulk = async (req, res) => {
   }
 };
 
-// GET ALL VEHICLES (Public - with filters)
+// GET ALL VEHICLES (Public - driverPhone HIDDEN)
 const getVehicles = async (req, res) => {
   try {
     const { 
-      type, 
-      location, 
-      minPrice, 
-      maxPrice, 
-      transmission, 
-      fuelType,
-      seats,
-      search,
-      page = 1, 
-      limit = 10 
+      type, location, minPrice, maxPrice, 
+      transmission, fuelType, seats, search,
+      page = 1, limit = 10 
     } = req.query;
 
     const where = { isActive: true };
@@ -151,7 +142,13 @@ const getVehicles = async (req, res) => {
         skip,
         take: parseInt(limit),
         orderBy: { createdAt: 'desc' },
-        include: {
+        select: {
+          id: true, name: true, type: true, brand: true, model: true,
+          year: true, seats: true, transmission: true, fuelType: true,
+          pricePerDay: true, location: true, description: true,
+          images: true, features: true, isAvailable: true, isActive: true,
+          createdAt: true, updatedAt: true,
+          // driverPhone INTENTIONALLY EXCLUDED from public API
           _count: { select: { reviews: true } },
           reviews: { select: { rating: true } },
         },
@@ -159,7 +156,6 @@ const getVehicles = async (req, res) => {
       prisma.vehicle.count({ where }),
     ]);
 
-    // Calculate average rating
     const vehiclesWithRating = vehicles.map(v => {
       const avgRating = v.reviews.length 
         ? v.reviews.reduce((a, b) => a + b.rating, 0) / v.reviews.length 
@@ -179,13 +175,19 @@ const getVehicles = async (req, res) => {
   }
 };
 
-// GET SINGLE VEHICLE
+// GET SINGLE VEHICLE (Public - driverPhone HIDDEN)
 const getVehicle = async (req, res) => {
   try {
     const { id } = req.params;
     const vehicle = await prisma.vehicle.findUnique({
       where: { id },
-      include: {
+      select: {
+        id: true, name: true, type: true, brand: true, model: true,
+        year: true, seats: true, transmission: true, fuelType: true,
+        pricePerDay: true, location: true, description: true,
+        images: true, features: true, isAvailable: true, isActive: true,
+        createdAt: true, updatedAt: true,
+        // driverPhone INTENTIONALLY EXCLUDED
         reviews: {
           include: { user: { select: { fullName: true, avatar: true } } },
           orderBy: { createdAt: 'desc' },
@@ -211,16 +213,13 @@ const getVehicle = async (req, res) => {
   }
 };
 
-// UPDATE VEHICLE (Admin)
+// UPDATE VEHICLE
 const updateVehicle = async (req, res) => {
   try {
     const { id } = req.params;
     
-    // Parse features before validation
     const rawData = { ...req.body };
-    if (rawData.features) {
-      rawData.features = parseFeatures(rawData.features);
-    }
+    if (rawData.features) rawData.features = parseFeatures(rawData.features);
     if (rawData.year) rawData.year = parseInt(rawData.year);
     if (rawData.seats) rawData.seats = parseInt(rawData.seats);
     if (rawData.pricePerDay) rawData.pricePerDay = parseFloat(rawData.pricePerDay);
@@ -230,14 +229,9 @@ const updateVehicle = async (req, res) => {
     const existing = await prisma.vehicle.findUnique({ where: { id } });
     if (!existing) return res.status(404).json({ success: false, message: 'Vehicle not found.' });
 
-    // Handle image updates
     let images = existing.images;
     if (req.files?.length > 0) {
-      // Delete old images from Cloudinary
-      for (const img of existing.images) {
-        await deleteImage(img);
-      }
-      // Upload new images from memory buffer
+      for (const img of existing.images) await deleteImage(img);
       images = [];
       for (const file of req.files) {
         const url = await uploadToCloudinary(file.buffer);
@@ -257,6 +251,7 @@ const updateVehicle = async (req, res) => {
     if (data.pricePerDay !== undefined) updateData.pricePerDay = data.pricePerDay;
     if (data.location !== undefined) updateData.location = data.location;
     if (data.description !== undefined) updateData.description = data.description;
+    if (data.driverPhone !== undefined) updateData.driverPhone = data.driverPhone || null; // NEW
     if (data.features !== undefined) updateData.features = data.features;
     updateData.images = images;
 
@@ -275,7 +270,7 @@ const updateVehicle = async (req, res) => {
   }
 };
 
-// DELETE VEHICLE (Admin - soft delete)
+// DELETE VEHICLE
 const deleteVehicle = async (req, res) => {
   try {
     const { id } = req.params;
@@ -289,7 +284,7 @@ const deleteVehicle = async (req, res) => {
   }
 };
 
-// CHECK VEHICLE AVAILABILITY
+// CHECK AVAILABILITY
 const checkAvailability = async (req, res) => {
   try {
     const { vehicleId, startDate, endDate } = req.query;
@@ -297,7 +292,7 @@ const checkAvailability = async (req, res) => {
     const overlapping = await prisma.booking.findFirst({
       where: {
         vehicleId,
-        status: { in: ['CONFIRMED', 'ACTIVE'] },
+        status: { in: ['CONFIRMED', 'ACTIVE', 'CLIENT_MARKED_COMPLETE', 'PENDING_VERIFICATION'] },
         OR: [
           { startDate: { lte: new Date(endDate) }, endDate: { gte: new Date(startDate) } },
         ],

@@ -14,6 +14,13 @@ import {
   ChevronDown,
   Phone,
   CheckCircle2,
+  Car,
+  Bus,
+  Users,
+  CreditCard,
+  Calendar,
+  AlertCircle,
+  ChevronRight
 } from 'lucide-react';
 
 export default function Home() {
@@ -22,10 +29,17 @@ export default function Home() {
   const [activeCategory, setActiveCategory] = useState('all');
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [currentCity, setCurrentCity] = useState('Lagos');
   const fleetRef = useRef(null);
   const heroRef = useRef(null);
 
   const categories = ['all', 'sedan', 'suv', 'bus', 'van'];
+
+  const cities = [
+    { name: 'Lagos', tagline: 'Mainland & Island coverage' },
+    { name: 'Abuja', tagline: 'Airport & city center' },
+    { name: 'Port Harcourt', tagline: 'Trans Amadi to GRA' },
+  ];
 
   useEffect(() => {
     fetchFeatured();
@@ -98,87 +112,96 @@ export default function Home() {
         </div>
       )}
 
-      {/* Hero Section */}
-      <section ref={heroRef} className="relative min-h-[100dvh] flex flex-col">
-        {/* Background: Split layout */}
-        <div className="absolute inset-0 flex">
-          <div className="hidden lg:block w-[45%] bg-slate-950" />
-          <div className="flex-1 relative">
-            <img
-              src="https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=1920&q=85"
-              alt="Premium fleet on Lagos road"
-              className="w-full h-full object-cover"
-              onError={(e) => {
-                e.target.src = 'https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1920&q=80';
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/70 to-transparent lg:via-slate-950/30" />
-            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent lg:hidden" />
-          </div>
+      {/* HERO SECTION — Better image, no split layout */}
+      <section ref={heroRef} className="relative bg-slate-950 min-h-[85vh] lg:min-h-[90vh] flex flex-col justify-center">
+        {/* Background image — premium black SUV on city road at dusk */}
+        <div className="absolute inset-0">
+          <img
+            src="https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1920&q=80"
+            alt="Premium SUV on city road"
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              e.target.src = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1920&q=80';
+            }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-slate-950/50" />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent" />
         </div>
 
-        {/* Content */}
-        <div className="relative z-10 flex-1 flex flex-col justify-center px-6 md:px-10 lg:px-16 max-w-7xl mx-auto w-full py-24 lg:py-0">
-          <div className="max-w-xl lg:max-w-lg">
-            {/* Trust badge */}
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 mb-8">
-              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-white/70 text-xs font-medium tracking-wide">
-                Verified by 12,000+ Nigerians
-              </span>
+        <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 w-full py-20 lg:py-0">
+          <div className="max-w-2xl">
+            
+            {/* City selector */}
+            <div className="flex items-center gap-2 mb-8">
+              <MapPin className="w-4 h-4 text-amber-500" />
+              <div className="flex gap-1">
+                {cities.map((city) => (
+                  <button
+                    key={city.name}
+                    onClick={() => setCurrentCity(city.name)}
+                    className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                      currentCity === city.name
+                        ? 'bg-amber-500 text-slate-900'
+                        : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white'
+                    }`}
+                  >
+                    {city.name}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Headline */}
-            <h1 className="text-[2.75rem] sm:text-5xl lg:text-[3.5rem] font-bold text-white leading-[1.05] tracking-tight mb-6">
-              The car you book<br />
-              <span className="text-white/40">is the car you get.</span>
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-[1.1] tracking-tight mb-5">
+              Need a ride in {currentCity}?
+              <span className="block text-white/40 mt-2 text-3xl sm:text-4xl lg:text-5xl font-semibold">
+                We will bring it to you.
+              </span>
             </h1>
 
             {/* Subhead */}
-            <p className="text-white/50 text-base md:text-lg mb-10 max-w-md leading-relaxed">
-              Buses, SUVs, and sedans across Lagos, Abuja & Port Harcourt. 
-              Real photos. Real prices. No surprises at pickup.
+            <p className="text-white/50 text-base md:text-lg mb-8 max-w-lg leading-relaxed">
+              Buses, SUVs, and sedans for hire across Lagos, Abuja, and Port Harcourt. 
+              We deliver to your hotel, office, or airport — no need to come to us.
             </p>
 
-            {/* CTA Group */}
-            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-12">
+            {/* CTA */}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-10">
               <button
                 onClick={scrollToFleet}
-                className="bg-white text-slate-900 px-8 py-3.5 rounded-lg font-semibold text-sm hover:bg-slate-100 transition-all duration-200 active:scale-[0.98]"
+                className="bg-amber-500 text-slate-900 px-8 py-3.5 rounded-lg font-bold text-sm hover:bg-amber-400 transition-all duration-200 active:scale-[0.98]"
               >
-                Browse fleet
+                See what is available
               </button>
               {!isAuthenticated ? (
                 <Link
                   to="/register"
-                  className="text-white/50 hover:text-white text-sm font-medium transition-colors flex items-center gap-2 group"
+                  className="text-white/40 hover:text-white text-sm font-medium transition-colors flex items-center gap-2 group"
                 >
-                  Create account — it is free
+                  First time? Sign up takes 2 minutes
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               ) : (
                 <Link
                   to="/my-bookings"
-                  className="text-white/50 hover:text-white text-sm font-medium transition-colors flex items-center gap-2 group"
+                  className="text-white/40 hover:text-white text-sm font-medium transition-colors flex items-center gap-2 group"
                 >
-                  View your bookings
+                  Check your upcoming trips
                   <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
                 </Link>
               )}
             </div>
 
-            {/* Quick stats row */}
-            <div className="flex items-center gap-6 text-xs text-white/30">
-              <span className="flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5" /> Fully insured
+            {/* Quick info pills */}
+            <div className="flex flex-wrap items-center gap-3 text-xs">
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 text-white/50 border border-white/10">
+                <Phone className="w-3 h-3" /> 080-VIVA-LOGISTICS
               </span>
-              <span className="w-px h-3 bg-white/10" />
-              <span className="flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5" /> 24/7 support
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 text-white/50 border border-white/10">
+                <Clock className="w-3 h-3" /> Same-day delivery available
               </span>
-              <span className="w-px h-3 bg-white/10" />
-              <span className="flex items-center gap-1.5">
-                <Phone className="w-3.5 h-3.5" /> Instant confirmation
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 text-white/50 border border-white/10">
+                <Shield className="w-3 h-3" /> Insurance included
               </span>
             </div>
           </div>
@@ -188,177 +211,75 @@ export default function Home() {
         <div className="relative z-10 pb-8 flex justify-center">
           <button
             onClick={scrollToFleet}
-            className="flex flex-col items-center gap-2 text-white/30 hover:text-white/60 transition-colors group"
+            className="flex flex-col items-center gap-2 text-white/20 hover:text-white/50 transition-colors"
           >
-            <span className="text-[10px] font-medium tracking-[0.2em] uppercase">Scroll</span>
-            <ChevronDown className="w-4 h-4 animate-bounce" />
+            <ChevronDown className="w-5 h-5" />
           </button>
         </div>
       </section>
 
-      {/* Trust Bar */}
-      <section className="bg-white border-b border-slate-100">
-        <div className="max-w-7xl mx-auto px-6 md:px-10 py-10">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-            <p className="text-slate-400 text-xs font-medium tracking-wide uppercase">
-              Trusted by teams at
-            </p>
-            <div className="flex items-center gap-8 md:gap-12 opacity-40 grayscale">
-              {['Andela', 'Flutterwave', 'Paystack', 'Kuda'].map((brand) => (
-                <span key={brand} className="text-sm font-bold text-slate-900 tracking-tight">
-                  {brand}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Stats Bar */}
-      <section className="bg-white py-20 md:py-24">
-        <div className="max-w-7xl mx-auto px-6 md:px-10">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 md:gap-8">
-            {[
-              { num: '500+', label: 'Vehicles', sub: 'across 3 cities' },
-              { num: '50K+', label: 'Trips completed', sub: 'since 2019' },
-              { num: '4.9', label: 'Average rating', sub: 'on Google Reviews' },
-              { num: '< 5 min', label: 'Pickup time', sub: 'at any location' },
-            ].map((stat) => (
-              <div key={stat.label} className="group">
-                <p className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight mb-1 group-hover:text-amber-600 transition-colors duration-300">
-                  {stat.num}
-                </p>
-                <p className="text-slate-900 font-semibold text-sm">{stat.label}</p>
-                <p className="text-slate-400 text-xs mt-0.5">{stat.sub}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Why Us */}
-      <section className="py-24 md:py-32 px-6 md:px-10 bg-slate-50">
+      {/* HOW IT WORKS */}
+      <section className="py-16 md:py-20 px-6 md:px-10 bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto">
-          <div className="grid lg:grid-cols-2 gap-16 lg:gap-24 items-start">
-            {/* Left: sticky heading */}
-            <div className="lg:sticky lg:top-24">
-              <p className="text-slate-400 text-xs font-semibold tracking-[0.2em] uppercase mb-4">
-                Why Viva
-              </p>
-              <h2 className="text-4xl md:text-5xl font-bold text-slate-900 leading-[1.1] tracking-tight mb-6">
-                No hidden fees.<br />No fake photos.<br />No stress.
-              </h2>
-              <p className="text-slate-500 text-base leading-relaxed max-w-md">
-                We built Viva because we were tired of rental companies that looked great online 
-                and disappointed in person. Every vehicle is photographed, inspected, and insured 
-                before it goes live.
-              </p>
-            </div>
-
-            {/* Right: feature cards */}
-            <div className="space-y-4">
-              {[
-                {
-                  icon: Shield,
-                  title: 'Every vehicle is fully insured',
-                  desc: 'Comprehensive coverage included in every booking. No extra paperwork, no surprise charges if something happens.',
-                },
-                {
-                  icon: Clock,
-                  title: 'Cancel or modify for free',
-                  desc: 'Plans change. Modify your dates or cancel entirely up to 24 hours before pickup at zero cost.',
-                },
-                {
-                  icon: Headphones,
-                  title: 'Talk to a human, anytime',
-                  desc: 'Our support team is based in Lagos. Call, WhatsApp, or email — someone real answers, usually within minutes.',
-                },
-                {
-                  icon: MapPin,
-                  title: 'Multiple pickup locations',
-                  desc: 'Airport, hotel, or your doorstep. We deliver to you in Lagos, Abuja, and Port Harcourt.',
-                },
-              ].map((item, i) => (
-                <div
-                  key={item.title}
-                  className="group p-6 md:p-8 rounded-2xl bg-white border border-slate-100 hover:border-slate-200 hover:shadow-lg hover:shadow-slate-200/30 transition-all duration-300"
-                >
-                  <div className="flex items-start gap-5">
-                    <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center shrink-0 group-hover:bg-amber-500 transition-colors duration-300">
-                      <item.icon className="w-4 h-4 text-white group-hover:text-slate-900 transition-colors duration-300" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-3 mb-2">
-                        <span className="text-[10px] font-bold text-slate-300 tracking-wider">0{i + 1}</span>
-                        <h3 className="text-base font-semibold text-slate-900">{item.title}</h3>
-                      </div>
-                      <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="py-24 md:py-32 px-6 md:px-10">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16 md:mb-20">
-            <p className="text-slate-400 text-xs font-semibold tracking-[0.2em] uppercase mb-4">
-              How it works
+          <div className="mb-10">
+            <p className="text-slate-400 text-xs font-semibold tracking-[0.15em] uppercase mb-2">
+              How this works
             </p>
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight">
-              Three steps. No paperwork.
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+              Three steps. No office visit required.
             </h2>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8 md:gap-12">
             {[
               {
-                num: '01',
-                title: 'Browse the fleet',
-                desc: 'Filter by vehicle type, price, or location. Every listing has real photos, verified specs, and live availability.',
+                num: '1',
+                title: 'Pick a vehicle online',
+                desc: 'Browse by type, price, or location. Every car has real photos — the one you see is the one you get.',
+                icon: Car,
               },
               {
-                num: '02',
-                title: 'Book & pay securely',
-                desc: 'Select your dates, pay with card or bank transfer via Paystack. You get instant confirmation and a booking reference.',
+                num: '2',
+                title: 'Pay & confirm',
+                desc: 'Card or bank transfer via Paystack. You get a booking code and driver contact within minutes.',
+                icon: CreditCard,
               },
               {
-                num: '03',
-                title: 'Pick up & drive',
-                desc: 'Show your ID and booking reference. Most pickups take under five minutes. Then you are on the road.',
+                num: '3',
+                title: 'We deliver to you',
+                desc: 'Driver brings the car to your location. Show your ID, sign the checklist, and drive off.',
+                icon: Calendar,
               },
             ].map((step, i) => (
-              <div key={step.num} className="relative">
-                <div className="mb-6">
-                  <span className="text-6xl md:text-7xl font-bold text-slate-100 select-none">
+              <div key={step.num} className="flex gap-4">
+                <div className="shrink-0">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-slate-900 font-bold text-sm">
                     {step.num}
-                  </span>
+                  </div>
+                  {i < 2 && (
+                    <div className="hidden md:block w-px h-full bg-slate-200 mx-auto mt-2" />
+                  )}
                 </div>
-                <h3 className="text-xl font-semibold text-slate-900 mb-3">{step.title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{step.desc}</p>
-                {i < 2 && (
-                  <div className="hidden md:block absolute top-10 left-full w-12 h-px bg-slate-200 -translate-x-6" />
-                )}
+                <div className="pb-8">
+                  <h3 className="text-base font-semibold text-slate-900 mb-2">{step.title}</h3>
+                  <p className="text-slate-500 text-sm leading-relaxed">{step.desc}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Fleet */}
-      <section ref={fleetRef} className="py-24 md:py-32 px-6 md:px-10 bg-slate-50">
+      {/* FLEET SECTION */}
+      <section ref={fleetRef} className="py-16 md:py-20 px-6 md:px-10 bg-slate-50">
         <div className="max-w-7xl mx-auto">
-          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-12 md:mb-16">
+          <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
             <div>
-              <p className="text-slate-400 text-xs font-semibold tracking-[0.2em] uppercase mb-3">
-                The fleet
+              <p className="text-slate-400 text-xs font-semibold tracking-[0.15em] uppercase mb-2">
+                Available now in {currentCity}
               </p>
-              <h2 className="text-4xl md:text-5xl font-bold text-slate-900 tracking-tight">
-                What is available
+              <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+                Vehicles you can book today
               </h2>
             </div>
             <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 -mx-6 px-6 md:mx-0 md:px-0 scrollbar-hide">
@@ -366,73 +287,75 @@ export default function Home() {
                 <button
                   key={cat}
                   onClick={() => setActiveCategory(cat)}
-                  className={`px-5 py-2.5 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-all duration-300 ${
+                  className={`px-4 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-all duration-200 ${
                     activeCategory === cat
-                      ? 'bg-slate-900 text-white shadow-md'
+                      ? 'bg-slate-900 text-white'
                       : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
                   }`}
                 >
-                  {cat === 'all' ? 'All' : cat}
+                  {cat === 'all' ? 'All types' : cat}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
             {(filteredVehicles.length > 0 ? filteredVehicles : featured)
               .slice(0, 6)
               .map((vehicle) => (
                 <Link
                   key={vehicle.id}
                   to={`/vehicles/${vehicle.id}`}
-                  className="group block bg-white rounded-2xl overflow-hidden border border-slate-100 hover:border-slate-200 hover:shadow-xl hover:shadow-slate-200/40 transition-all duration-500"
+                  className="group block bg-white rounded-xl overflow-hidden border border-slate-200 hover:border-slate-300 hover:shadow-lg transition-all duration-300"
                 >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-slate-100">
+                  <div className="relative aspect-[16/10] overflow-hidden bg-slate-100">
                     <img
                       src={
                         vehicle.images?.[0] ||
                         'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600'
                       }
                       alt={vehicle.name}
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                     />
-                    <div className="absolute top-4 left-4">
-                      <span className="bg-white/95 backdrop-blur text-slate-700 text-[10px] font-bold px-3 py-1.5 rounded-full uppercase tracking-wider shadow-sm">
+                    <div className="absolute top-3 left-3">
+                      <span className="bg-white/95 text-slate-700 text-[10px] font-bold px-2.5 py-1 rounded-md uppercase tracking-wider">
                         {vehicle.type}
                       </span>
                     </div>
                     {vehicle.isAvailable === false && (
-                      <div className="absolute inset-0 bg-white/60 backdrop-blur-[2px] flex items-center justify-center">
+                      <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center">
                         <span className="bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-full">
-                          Currently booked
+                          Booked until {vehicle.nextAvailable || 'next week'}
                         </span>
                       </div>
                     )}
                   </div>
-                  <div className="p-5">
-                    <div className="flex items-start justify-between gap-3 mb-3">
+                  <div className="p-4">
+                    <div className="flex items-start justify-between gap-3 mb-2">
                       <div>
-                        <h3 className="text-base font-semibold text-slate-900 group-hover:text-amber-600 transition-colors">
+                        <h3 className="text-sm font-semibold text-slate-900 group-hover:text-amber-600 transition-colors">
                           {vehicle.name}
                         </h3>
-                        <p className="text-slate-400 text-xs mt-1">
+                        <p className="text-slate-400 text-xs mt-0.5">
                           {vehicle.brand} {vehicle.model} · {vehicle.seats} seats
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-base font-bold text-slate-900">{formatNaira(vehicle.pricePerDay)}</p>
-                        <p className="text-[10px] text-slate-400 font-medium">per day</p>
+                        <p className="text-sm font-bold text-slate-900">{formatNaira(vehicle.pricePerDay)}</p>
+                        <p className="text-[10px] text-slate-400">per day</p>
                       </div>
                     </div>
-                    <div className="flex items-center gap-4 text-xs text-slate-400 pt-3 border-t border-slate-50">
-                      <span className="flex items-center gap-1.5">
-                        <MapPin className="w-3.5 h-3.5" /> {vehicle.location || 'Lagos'}
+                    <div className="flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-slate-100">
+                      <span className="flex items-center gap-1">
+                        <MapPin className="w-3 h-3" /> {vehicle.location || currentCity}
                       </span>
-                      {vehicle.avgRating > 0 && (
+                      {vehicle.avgRating > 0 ? (
                         <span className="flex items-center gap-1">
-                          <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                          <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
                           <span className="text-slate-600 font-medium">{vehicle.avgRating}</span>
                         </span>
+                      ) : (
+                        <span className="text-slate-300">No reviews yet</span>
                       )}
                     </div>
                   </div>
@@ -440,65 +363,121 @@ export default function Home() {
               ))}
           </div>
 
-          <div className="mt-12 text-center">
+          <div className="mt-8 text-center">
             <Link
               to="/vehicles"
-              className="inline-flex items-center gap-2 px-6 py-3 rounded-full border border-slate-200 text-sm font-semibold text-slate-900 hover:bg-slate-900 hover:text-white hover:border-slate-900 transition-all duration-300"
+              className="inline-flex items-center gap-2 text-sm font-semibold text-slate-900 hover:text-amber-600 transition-colors"
             >
-              View all vehicles
-              <ArrowRight className="w-4 h-4" />
+              See all vehicles in {currentCity}
+              <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
         </div>
       </section>
 
-      {/* Testimonials */}
-      <section className="py-24 md:py-32 bg-slate-950 px-6 md:px-10">
+      {/* WHY US */}
+      <section className="py-16 md:py-20 px-6 md:px-10 bg-white">
         <div className="max-w-7xl mx-auto">
-          <div className="mb-16 md:mb-20">
-            <p className="text-slate-500 text-xs font-semibold tracking-[0.2em] uppercase mb-4">
-              What people say
+          <div className="mb-10">
+            <p className="text-slate-400 text-xs font-semibold tracking-[0.15em] uppercase mb-2">
+              Why people keep coming back
             </p>
-            <h2 className="text-4xl md:text-5xl font-bold text-white tracking-tight max-w-xl">
-              Do not take our word for it.
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight">
+              We are not a faceless app. We are a team in Lagos.
             </h2>
           </div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
               {
-                name: 'Chinedu Okonkwo',
-                role: 'Business Executive',
-                text: 'Pickup took four minutes. Car was spotless, tank full. This is how every rental should work.',
+                icon: Shield,
+                title: 'Insurance is included',
+                desc: 'Every booking comes with comprehensive cover. If something happens, you are not paying out of pocket.',
               },
               {
-                name: 'Amina Bello',
-                role: 'Event Planner',
-                text: 'Booked three buses for a corporate retreat. Arrived early, drivers were professional, zero stress.',
+                icon: Users,
+                title: 'Real people, real support',
+                desc: 'Call us and someone answers. WhatsApp us and we reply. No chatbots, no 48-hour email waits.',
               },
               {
-                name: 'Tunde Adeyemi',
-                role: 'Travel Blogger',
-                text: 'The car in the photo actually matched the car at pickup. That never happens in Nigeria.',
+                icon: Car,
+                title: 'What you see is what you get',
+                desc: 'The photos on the site are the actual vehicles. We do not use stock images or "representative" photos.',
+              },
+              {
+                icon: AlertCircle,
+                title: 'Cancel up to 24 hours before',
+                desc: 'Plans change. Cancel or modify your booking for free up to a day before your pickup time.',
+              },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className="p-5 rounded-xl bg-slate-50 border border-slate-100 hover:border-slate-200 transition-all duration-200"
+              >
+                <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center mb-4">
+                  <item.icon className="w-4 h-4 text-amber-400" />
+                </div>
+                <h3 className="text-sm font-semibold text-slate-900 mb-2">{item.title}</h3>
+                <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TESTIMONIALS */}
+      <section className="py-16 md:py-20 bg-slate-950 px-6 md:px-10">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-10">
+            <p className="text-slate-500 text-xs font-semibold tracking-[0.15em] uppercase mb-2">
+              What customers say
+            </p>
+            <h2 className="text-2xl md:text-3xl font-bold text-white tracking-tight">
+              Straight from the people who have used us.
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-5">
+            {[
+              {
+                name: 'Chinedu O.',
+                location: 'Lekki, Lagos',
+                text: 'Booked a Hiace for a family trip to Ibadan. Driver was on time, AC worked, and the bus was clean. Will use again.',
+                rating: 5,
+              },
+              {
+                name: 'Amina B.',
+                location: 'Wuse, Abuja',
+                text: 'Had to change my pickup location last minute. Called them and they sorted it in 10 minutes. That kind of service is rare.',
+                rating: 5,
+              },
+              {
+                name: 'Tunde A.',
+                location: 'GRA, Port Harcourt',
+                text: 'The Corolla I got looked exactly like the photo. Fuel tank was full, car was washed. Small things, but they matter.',
+                rating: 4,
               },
             ].map((review, i) => (
               <div
                 key={i}
-                className="p-8 rounded-2xl bg-slate-900 border border-slate-800/50 hover:border-slate-700 transition-colors duration-300"
+                className="p-6 rounded-xl bg-slate-900 border border-slate-800"
               >
-                <div className="flex gap-1 mb-6">
+                <div className="flex gap-0.5 mb-4">
                   {[...Array(5)].map((_, j) => (
-                    <Star key={j} className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                    <Star 
+                      key={j} 
+                      className={`w-3 h-3 ${j < review.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-700'}`} 
+                    />
                   ))}
                 </div>
-                <p className="text-slate-300 text-sm leading-relaxed mb-8">"{review.text}"</p>
+                <p className="text-slate-300 text-sm leading-relaxed mb-6">"{review.text}"</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 font-bold text-xs">
+                  <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 font-bold text-xs">
                     {review.name.charAt(0)}
                   </div>
                   <div>
                     <p className="text-white text-sm font-medium">{review.name}</p>
-                    <p className="text-slate-600 text-xs">{review.role}</p>
+                    <p className="text-slate-600 text-xs">{review.location}</p>
                   </div>
                 </div>
               </div>
@@ -508,41 +487,31 @@ export default function Home() {
       </section>
 
       {/* CTA */}
-      <section className="py-24 md:py-32 px-6 md:px-10">
-        <div className="max-w-7xl mx-auto">
-          <div className="bg-slate-950 rounded-3xl px-8 md:px-16 py-20 md:py-24 text-center relative overflow-hidden">
-            {/* Subtle pattern */}
-            <div className="absolute inset-0 opacity-[0.03]" style={{
-              backgroundImage: `radial-gradient(circle at 1px 1px, white 1px, transparent 0)`,
-              backgroundSize: '40px 40px'
-            }} />
-            
-            <div className="relative z-10 max-w-2xl mx-auto">
-              <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-5 leading-tight tracking-tight">
-                {isAuthenticated
-                  ? `Back for more, ${user?.fullName?.split(' ')[0]}?`
-                  : 'Ready when you are.'}
-              </h2>
-              <p className="text-slate-400 mb-10 text-base md:text-lg leading-relaxed">
-                {isAuthenticated
-                  ? 'Your next ride is a few taps away.'
-                  : 'Join thousands of Nigerians who book direct. No commitment, no hassle.'}
-              </p>
-              <div className="flex flex-wrap justify-center gap-4">
-                <Link
-                  to={isAuthenticated ? '/vehicles' : '/register'}
-                  className="bg-white text-slate-900 px-8 py-3.5 rounded-lg font-semibold text-sm hover:bg-slate-100 transition-all duration-200"
-                >
-                  {isAuthenticated ? 'Book a vehicle' : 'Create free account'}
-                </Link>
-                <Link
-                  to="/vehicles"
-                  className="text-white/50 hover:text-white px-8 py-3.5 text-sm font-medium transition-colors border border-white/10 rounded-lg hover:bg-white/5"
-                >
-                  Browse fleet
-                </Link>
-              </div>
-            </div>
+      <section className="py-16 md:py-20 px-6 md:px-10 bg-white">
+        <div className="max-w-3xl mx-auto text-center">
+          <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
+            {isAuthenticated
+              ? `Need another ride, ${user?.fullName?.split(' ')[0]}?`
+              : 'Book your first ride today'}
+          </h2>
+          <p className="text-slate-500 mb-8 text-base">
+            {isAuthenticated
+              ? 'Your account is ready. Browse available vehicles and book in minutes.'
+              : 'No deposit required. Pay when you book, cancel for free up to 24 hours before.'}
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Link
+              to={isAuthenticated ? '/vehicles' : '/register'}
+              className="bg-slate-900 text-white px-8 py-3 rounded-lg font-semibold text-sm hover:bg-slate-800 transition-all duration-200"
+            >
+              {isAuthenticated ? 'Book a vehicle' : 'Create account'}
+            </Link>
+            <Link
+              to="/vehicles"
+              className="text-slate-600 hover:text-slate-900 px-8 py-3 text-sm font-medium transition-colors border border-slate-200 rounded-lg hover:border-slate-300"
+            >
+              Browse fleet first
+            </Link>
           </div>
         </div>
       </section>

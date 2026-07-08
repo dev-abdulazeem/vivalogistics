@@ -53,6 +53,7 @@ model Vehicle {
   description  String?
   images       String[]
   features     String[]
+  driverPhone  String?      @map("driver_phone") // NEW: Driver contact, hidden from public
   isAvailable  Boolean      @default(true) @map("is_available")
   isActive     Boolean      @default(true) @map("is_active")
   createdAt    DateTime     @default(now()) @map("created_at")
@@ -64,25 +65,33 @@ model Vehicle {
 }
 
 model Booking {
-  id               String        @id @default(uuid())
-  userId           String        @map("user_id")
-  vehicleId        String        @map("vehicle_id")
-  startDate        DateTime      @map("start_date")
-  endDate          DateTime      @map("end_date")
-  totalDays        Int           @map("total_days")
-  totalPrice       Decimal       @map("total_price") @db.Decimal(10, 2)
-  status           BookingStatus @default(PENDING)
-  pickupLocation   String        @map("pickup_location")
-  dropoffLocation  String?       @map("dropoff_location")
-  driverRequired   Boolean       @default(false) @map("driver_required")
-  specialRequests  String?       @map("special_requests")
-  paymentReference String?       @map("payment_reference")
-  createdAt        DateTime      @default(now()) @map("created_at")
-  updatedAt        DateTime      @updatedAt @map("updated_at")
-  user             User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  vehicle          Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
-  payment          Payment?
-  review           Review?
+  id                     String        @id @default(uuid())
+  userId                 String        @map("user_id")
+  vehicleId              String        @map("vehicle_id")
+  startDate              DateTime      @map("start_date")
+  endDate                DateTime      @map("end_date")
+  totalDays              Int           @map("total_days")
+  totalPrice             Decimal       @map("total_price") @db.Decimal(10, 2)
+  status                 BookingStatus @default(PENDING)
+  pickupLocation         String        @map("pickup_location")
+  dropoffLocation        String?       @map("dropoff_location")
+  driverRequired         Boolean       @default(false) @map("driver_required")
+  specialRequests        String?       @map("special_requests")
+  paymentReference       String?       @map("payment_reference")
+  clientMarkedCompleteAt DateTime?     @map("client_marked_complete_at")
+  adminVerifiedAt        DateTime?     @map("admin_verified_at")
+  autoCompletedAt        DateTime?     @map("auto_completed_at")
+  verifiedByAdmin        Boolean       @default(false) @map("verified_by_admin")
+  extraCharges           Decimal       @default(0) @map("extra_charges") @db.Decimal(10, 2)
+  extraChargeDays        Int           @default(0) @map("extra_charge_days")
+  overdueDailyRate       Decimal       @default(0) @map("overdue_daily_rate") @db.Decimal(10, 2)
+  adminNotes             String?       @map("admin_notes")
+  createdAt              DateTime      @default(now()) @map("created_at")
+  updatedAt              DateTime      @updatedAt @map("updated_at")
+  user                   User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicle                Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  payment                Payment?
+  review                 Review?
 
   @@map("bookings")
 }
@@ -173,7 +182,10 @@ enum BookingStatus {
   PENDING
   CONFIRMED
   ACTIVE
+  CLIENT_MARKED_COMPLETE
+  PENDING_VERIFICATION
   COMPLETED
+  AUTO_COMPLETED
   CANCELLED
   REFUNDED
 }
@@ -191,4 +203,6 @@ enum NotificationType {
   PAYMENT_RECEIVED
   REMINDER
   ADMIN_ALERT
+  BOOKING_OVERDUE
+  EXTRA_CHARGES_APPLIED
 }

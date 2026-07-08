@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, Outlet, Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, Navigate, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
@@ -22,51 +22,15 @@ import Booking from './pages/Booking';
 import MyBookings from './pages/MyBookings';
 import Profile from './pages/Profile';
 
+// NEW: Booking Confirmation page after payment
+import BookingConfirmation from './pages/BookingConfirmation';
+
 // Admin
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './pages/admin/Dashboard';
 import AdminVehicles from './pages/admin/Vehicles';
 import AdminBookings from './pages/admin/Bookings';
 import AdminUsers from './pages/admin/Users';
-
-// ─── Payment Redirect Handler ───
-// This component checks if user is returning from Paystack payment
-function PaymentRedirectHandler() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(location.search);
-    const reference = urlParams.get('reference');
-    const trxref = urlParams.get('trxref');
-
-    // If coming back from Paystack with a reference
-    if (reference || trxref) {
-      // Clean the URL (remove query params)
-      window.history.replaceState({}, document.title, location.pathname);
-      
-      // Verify payment then redirect to My Bookings
-      const verifyAndRedirect = async () => {
-        try {
-          // Call your backend to verify the payment
-          await api.post('/payments/verify', { reference: reference || trxref });
-          toast.success('Payment successful! Your booking is confirmed.');
-        } catch (error) {
-          // Even if verification fails, still redirect to My Bookings
-          // The user can check status there
-          console.error('Payment verification error:', error);
-        } finally {
-          // Always redirect to My Bookings after Paystack return
-          navigate('/my-bookings', { replace: true });
-        }
-      };
-
-      verifyAndRedirect();
-    }
-  }, [location, navigate]);
-
-  return null;
-}
 
 function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
@@ -109,6 +73,9 @@ function App() {
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/verify-pending" element={<VerifyPending />} />
 
+          {/* NEW: Payment callback route — shows booking confirmation */}
+          <Route path="/payment/verify" element={<BookingConfirmation />} />
+
           <Route element={<ProtectedRoute />}>
             <Route path="/booking/:vehicleId" element={<Booking />} />
             <Route path="/my-bookings" element={<MyBookings />} />
@@ -124,13 +91,18 @@ function App() {
 }
 
 function MainLayout() {
+  const location = useLocation();
+  
+  // Hide navbar/footer on payment verify page for cleaner experience
+  const hideLayout = location.pathname === '/payment/verify';
+
   return (
     <div className="min-h-screen flex flex-col bg-white">
-      <Navbar />
+      {!hideLayout && <Navbar />}
       <main className="flex-1">
         <Outlet />
       </main>
-      <Footer />
+      {!hideLayout && <Footer />}
     </div>
   );
 }

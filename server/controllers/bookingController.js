@@ -39,11 +39,10 @@ const createBooking = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Vehicle not found or unavailable.' });
     }
 
-    // Check availability
     const overlapping = await prisma.booking.findFirst({
       where: {
         vehicleId: data.vehicleId,
-        status: { in: ['CONFIRMED', 'ACTIVE'] },
+        status: { in: ['CONFIRMED', 'ACTIVE', 'CLIENT_MARKED_COMPLETE', 'PENDING_VERIFICATION'] },
         startDate: { lte: end },
         endDate: { gte: start },
       },
@@ -69,11 +68,11 @@ const createBooking = async (req, res) => {
         driverRequired: data.driverRequired || false,
         specialRequests: data.specialRequests,
         status: 'PENDING',
+        overdueDailyRate: vehicle.pricePerDay,
       },
       include: { vehicle: true, user: true },
     });
 
-    // Initialize Paystack payment
     const payment = await initializePayment({
       email: booking.user.email,
       amount: Number(totalPrice),
@@ -81,7 +80,6 @@ const createBooking = async (req, res) => {
       callback_url: `${process.env.FRONTEND_URL}/payment/verify`,
     });
 
-    // Create payment record
     await prisma.payment.create({
       data: {
         bookingId: booking.id,
@@ -90,7 +88,6 @@ const createBooking = async (req, res) => {
       },
     });
 
-    // Update booking with payment reference
     await prisma.booking.update({
       where: { id: booking.id },
       data: { paymentReference: payment.reference },
@@ -114,12 +111,11 @@ const createBooking = async (req, res) => {
   }
 };
 
-// VERIFY PAYMENT (Webhook + Manual)
+// VERIFY PAYMENT — Returns full booking with vehicle driverPhone
 const verifyPayment = async (req, res) => {
   try {
     const { reference } = req.body;
 
-    // Call Paystack utility (renamed to avoid conflict)
     const paymentData = await verifyPaystackPayment(reference);
     
     if (paymentData.status !== 'success') {
@@ -136,14 +132,16 @@ const verifyPayment = async (req, res) => {
       include: { booking: { include: { user: true, vehicle: true } } },
     });
 
-    // Confirm booking
     const booking = await prisma.booking.update({
       where: { id: payment.bookingId },
       data: { status: 'CONFIRMED' },
-      include: { user: true, vehicle: true },
+      include: { 
+        user: true, 
+        vehicle: true,
+        payment: true,
+      },
     });
 
-    // Create notification
     await prisma.notification.create({
       data: {
         userId: booking.userId,
@@ -153,7 +151,6 @@ const verifyPayment = async (req, res) => {
       },
     });
 
-    // Send confirmation email using template
     const emailTemplate = getBookingConfirmationEmail(booking.user.fullName, booking);
     await sendEmail({ to: booking.user.email, ...emailTemplate });
 
@@ -164,12 +161,23 @@ const verifyPayment = async (req, res) => {
   }
 };
 
-// GET USER BOOKINGS
+// GET USER BOOKINGS — Exclude driverPhone from vehicle
 const getMyBookings = async (req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
       where: { userId: req.user.id },
-      include: { vehicle: true, payment: true, review: true },
+      include: { 
+        vehicle: {
+          select: {
+            id: true, name: true, brand: true, model: true, type: true,
+            seats: true, transmission: true, fuelType: true, images: true,
+            pricePerDay: true, location: true,
+            // driverPhone is intentionally excluded
+          }
+        }, 
+        payment: true, 
+        review: true 
+      },
       orderBy: { createdAt: 'desc' },
     });
     res.json({ success: true, data: bookings });
@@ -178,7 +186,7 @@ const getMyBookings = async (req, res) => {
   }
 };
 
-// GET SINGLE BOOKING
+// GET SINGLE BOOKING — Include driverPhone only for own booking
 const getBooking = async (req, res) => {
   try {
     const { id } = req.params;
@@ -210,8 +218,8 @@ const cancelBooking = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Booking not found.' });
     }
 
-    if (booking.status === 'ACTIVE') {
-      return res.status(400).json({ success: false, message: 'Cannot cancel active booking.' });
+    if (['ACTIVE', 'CLIENT_MARKED_COMPLETE', 'PENDING_VERIFICATION', 'COMPLETED', 'AUTO_COMPLETED'].includes(booking.status)) {
+      return res.status(400).json({ success: false, message: 'Cannot cancel this booking.' });
     }
 
     await prisma.booking.update({
@@ -226,7 +234,6 @@ const cancelBooking = async (req, res) => {
       });
     }
 
-    // Notification
     await prisma.notification.create({
       data: {
         userId: req.user.id,
@@ -242,10 +249,62 @@ const cancelBooking = async (req, res) => {
   }
 };
 
+// CLIENT: MARK BOOKING AS COMPLETE
+const markBookingComplete = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id;
+
+    const booking = await prisma.booking.findFirst({
+      where: { id, userId },
+      include: { vehicle: true, user: true },
+    });
+
+    if (!booking) {
+      return res.status(404).json({ success: false, message: 'Booking not found.' });
+    }
+
+    if (booking.status !== 'ACTIVE' && booking.status !== 'CONFIRMED') {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Cannot mark as complete. Current status: ${booking.status}` 
+      });
+    }
+
+    const updatedBooking = await prisma.booking.update({
+      where: { id },
+      data: {
+        status: 'CLIENT_MARKED_COMPLETE',
+        clientMarkedCompleteAt: new Date(),
+      },
+      include: { vehicle: true, user: true },
+    });
+
+    await prisma.notification.create({
+      data: {
+        userId: booking.userId,
+        type: 'ADMIN_ALERT',
+        title: 'Return Pending Verification',
+        message: `Client marked ${booking.vehicle.name} as returned. Please verify.`,
+      },
+    });
+
+    res.json({
+      success: true,
+      message: 'Marked as returned. Awaiting admin verification.',
+      data: updatedBooking,
+    });
+  } catch (error) {
+    console.error('Mark complete error:', error);
+    res.status(500).json({ success: false, message: 'Failed to mark booking as complete.' });
+  }
+};
+
 module.exports = {
   createBooking,
   verifyPayment,
   getMyBookings,
   getBooking,
   cancelBooking,
+  markBookingComplete,
 };
