@@ -4,7 +4,7 @@ import api from '../../api/axios';
 import { formatNaira } from '../../utils/formatCurrency';
 import { 
   TrendingUp, Users, Car, Calendar, AlertTriangle, 
-  ArrowUpRight, ArrowDownRight, Wallet, Activity 
+  ArrowUpRight, Wallet, Activity, Phone
 } from 'lucide-react';
 
 export default function AdminDashboard() {
@@ -51,7 +51,6 @@ export default function AdminDashboard() {
       color: 'text-emerald-600',
       bg: 'bg-emerald-50',
       border: 'border-emerald-100',
-      trend: 'up'
     },
     { 
       label: 'Total Bookings', 
@@ -62,7 +61,6 @@ export default function AdminDashboard() {
       color: 'text-blue-600',
       bg: 'bg-blue-50',
       border: 'border-blue-100',
-      trend: 'neutral'
     },
     { 
       label: 'Registered Users', 
@@ -73,7 +71,6 @@ export default function AdminDashboard() {
       color: 'text-violet-600',
       bg: 'bg-violet-50',
       border: 'border-violet-100',
-      trend: 'neutral'
     },
     { 
       label: 'Fleet Size', 
@@ -84,7 +81,6 @@ export default function AdminDashboard() {
       color: 'text-amber-600',
       bg: 'bg-amber-50',
       border: 'border-amber-100',
-      trend: 'neutral'
     },
   ];
 
@@ -103,17 +99,17 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 max-w-full">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Dashboard</h1>
           <p className="text-slate-500 text-sm mt-1">Overview of your rental business</p>
         </div>
         <button
           onClick={fetchStats}
           disabled={loading}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-lg text-sm font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900 transition-all disabled:opacity-50"
+          className="flex items-center justify-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:border-slate-300 hover:text-slate-900 transition-all disabled:opacity-50 w-full sm:w-auto"
         >
           <Activity className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           {loading ? 'Refreshing...' : 'Refresh'}
@@ -122,19 +118,19 @@ export default function AdminDashboard() {
 
       {/* Attention Banner */}
       {(s.needsAttention || 0) > 0 && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center gap-3">
-          <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
-          <div>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          <AlertTriangle className="w-5 h-5 text-red-500 shrink-0 mt-0.5 sm:mt-0" />
+          <div className="flex-1">
             <p className="text-red-800 font-semibold text-sm">
               {s.needsAttention} booking{s.needsAttention !== 1 ? 's' : ''} need attention
             </p>
-            <p className="text-red-600 text-xs">
+            <p className="text-red-600 text-xs mt-0.5">
               Clients marked vehicles as returned — verify them to avoid auto-completion fees.
             </p>
           </div>
           <Link
             to="/admin/bookings"
-            className="ml-auto px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-lg hover:bg-red-700 transition-colors"
+            className="w-full sm:w-auto px-4 py-2.5 bg-red-600 text-white text-xs font-bold rounded-xl hover:bg-red-700 transition-colors text-center shrink-0"
           >
             Review Now
           </Link>
@@ -142,36 +138,36 @@ export default function AdminDashboard() {
       )}
 
       {/* Stats Grid */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         {statCards.map((card) => {
           const Icon = card.icon;
           return (
             <Link
               key={card.label}
               to={card.href}
-              className={`group bg-white rounded-xl border ${card.border} p-5 hover:shadow-md transition-all duration-200`}
+              className={`group bg-white rounded-xl border ${card.border} p-4 sm:p-5 hover:shadow-md transition-all duration-200`}
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className={`w-10 h-10 rounded-lg ${card.bg} flex items-center justify-center`}>
-                  <Icon className={`w-5 h-5 ${card.color}`} />
+              <div className="flex items-start justify-between mb-3">
+                <div className={`w-9 h-9 sm:w-10 sm:h-10 rounded-lg ${card.bg} flex items-center justify-center`}>
+                  <Icon className={`w-4 h-4 sm:w-5 sm:h-5 ${card.color}`} />
                 </div>
-                {card.trend === 'up' && <ArrowUpRight className="w-4 h-4 text-emerald-500" />}
+                <ArrowUpRight className="w-4 h-4 text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="text-slate-500 text-xs font-medium uppercase tracking-wider">{card.label}</p>
-              <p className="text-2xl font-bold text-slate-900 mt-1">{card.value}</p>
-              <p className="text-slate-400 text-xs mt-1">{card.sub}</p>
+              <p className="text-slate-500 text-[10px] sm:text-xs font-medium uppercase tracking-wider">{card.label}</p>
+              <p className="text-lg sm:text-2xl font-bold text-slate-900 mt-1">{card.value}</p>
+              <p className="text-slate-400 text-[10px] sm:text-xs mt-1 truncate">{card.sub}</p>
             </Link>
           );
         })}
       </div>
 
       {/* Two Column Layout */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Recent Bookings */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div className="px-4 sm:px-6 py-4 border-b border-slate-100 flex items-center justify-between">
             <div>
-              <h2 className="font-bold text-slate-900">Recent Bookings</h2>
+              <h2 className="font-bold text-slate-900 text-sm sm:text-base">Recent Bookings</h2>
               <p className="text-slate-400 text-xs mt-0.5">Latest customer activity</p>
             </div>
             <Link 
@@ -184,7 +180,7 @@ export default function AdminDashboard() {
           
           <div className="divide-y divide-slate-50">
             {recent.length > 0 ? recent.map((booking) => (
-              <div key={booking.id} className="px-6 py-4 flex items-center gap-4 hover:bg-slate-50/50 transition-colors">
+              <div key={booking.id} className="px-4 sm:px-6 py-3 sm:py-4 flex items-center gap-3 sm:gap-4 hover:bg-slate-50/50 transition-colors">
                 <div className="w-10 h-10 rounded-lg bg-slate-100 overflow-hidden shrink-0">
                   <img 
                     src={booking.vehicle?.images?.[0] || '/placeholder.jpg'} 
@@ -193,7 +189,7 @@ export default function AdminDashboard() {
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <p className="text-sm font-semibold text-slate-900 truncate">
                       {booking.user?.fullName || 'Unknown'}
                     </p>
@@ -204,6 +200,15 @@ export default function AdminDashboard() {
                   <p className="text-xs text-slate-500 truncate">
                     {booking.vehicle?.name || 'Unknown vehicle'} · {formatNaira(booking.totalPrice || 0)}
                   </p>
+                  {booking.user?.phone && (
+                    <a 
+                      href={`tel:${booking.user.phone}`}
+                      className="text-xs text-emerald-600 flex items-center gap-1 mt-0.5 hover:underline"
+                    >
+                      <Phone className="w-3 h-3" />
+                      {booking.user.phone}
+                    </a>
+                  )}
                 </div>
                 <div className="text-right shrink-0">
                   <p className="text-xs text-slate-400">
@@ -221,14 +226,14 @@ export default function AdminDashboard() {
 
         {/* Status Breakdown */}
         <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-slate-100">
-            <h2 className="font-bold text-slate-900">Booking Status</h2>
+          <div className="px-4 sm:px-6 py-4 border-b border-slate-100">
+            <h2 className="font-bold text-slate-900 text-sm sm:text-base">Booking Status</h2>
             <p className="text-slate-400 text-xs mt-0.5">Current distribution</p>
           </div>
-          <div className="p-6 space-y-4">
+          <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
             {Object.entries(statusCounts).map(([status, count]) => (
               <div key={status} className="flex items-center gap-3">
-                <div className={`w-2 h-2 rounded-full ${statusBadge(status).split(' ')[0].replace('bg-', 'bg-').replace('100', '500')}`} />
+                <div className={`w-2.5 h-2.5 rounded-full ${statusBadge(status).split(' ')[0].replace('bg-', 'bg-').replace('100', '500')}`} />
                 <span className="text-sm text-slate-600 flex-1">{status.replace(/_/g, ' ')}</span>
                 <span className="text-sm font-bold text-slate-900">{count}</span>
               </div>
@@ -239,19 +244,19 @@ export default function AdminDashboard() {
           </div>
           
           {/* Quick Actions */}
-          <div className="px-6 py-4 bg-slate-50 border-t border-slate-100">
+          <div className="px-4 sm:px-6 py-4 bg-slate-50 border-t border-slate-100">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-3">Quick Actions</p>
             <div className="space-y-2">
               <Link 
                 to="/admin/vehicles" 
-                className="flex items-center gap-3 p-3 bg-white rounded-lg border border-slate-200 hover:border-amber-300 transition-colors"
+                className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 hover:border-amber-300 transition-colors"
               >
                 <Car className="w-4 h-4 text-amber-500" />
                 <span className="text-sm font-medium text-slate-700">Manage Fleet</span>
               </Link>
               <Link 
                 to="/admin/users" 
-                className="flex items-center gap-3 p-3 bg-white rounded-lg border border-slate-200 hover:border-amber-300 transition-colors"
+                className="flex items-center gap-3 p-3 bg-white rounded-xl border border-slate-200 hover:border-amber-300 transition-colors"
               >
                 <Users className="w-4 h-4 text-blue-500" />
                 <span className="text-sm font-medium text-slate-700">Manage Users</span>

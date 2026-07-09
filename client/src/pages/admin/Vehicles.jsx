@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import api from '../../api/axios';
 import { formatNaira } from '../../utils/formatCurrency';
 import toast from 'react-hot-toast';
+import { Plus, Search, Filter, X, ChevronDown, ChevronUp, Car, MapPin, Tag, Phone, Image as ImageIcon } from 'lucide-react';
 
 export default function AdminVehicles() {
   const [vehicles, setVehicles] = useState([]);
@@ -9,6 +10,8 @@ export default function AdminVehicles() {
   const [showModal, setShowModal] = useState(false);
   const [editingVehicle, setEditingVehicle] = useState(null);
   const [filter, setFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [expandedCard, setExpandedCard] = useState(null);
 
   const [form, setForm] = useState({
     name: '',
@@ -184,10 +187,18 @@ export default function AdminVehicles() {
   };
 
   const filteredVehicles = vehicles.filter((v) => {
-    if (filter === 'active') return v.isActive;
-    if (filter === 'inactive') return !v.isActive;
-    return true;
+    const matchesFilter = filter === 'all' ? true : filter === 'active' ? v.isActive : !v.isActive;
+    const matchesSearch = searchQuery === '' ||
+      v.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.model?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      v.location?.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesFilter && matchesSearch;
   });
+
+  const toggleCard = (id) => {
+    setExpandedCard(expandedCard === id ? null : id);
+  };
 
   if (loading) {
     return (
@@ -198,58 +209,208 @@ export default function AdminVehicles() {
   }
 
   return (
-    <div>
+    <div className="px-4 sm:px-0">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
-        <h1 className="text-2xl font-bold text-slate-900">Manage Vehicles</h1>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Manage Vehicles</h1>
+          <p className="text-slate-500 text-sm mt-0.5">{vehicles.length} total vehicles</p>
+        </div>
         <button
           onClick={openCreate}
-          className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-lg text-sm font-medium transition-colors"
+          className="bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-sm font-medium transition-colors flex items-center justify-center gap-2 shadow-sm"
         >
-          + Add Vehicle
+          <Plus className="w-4 h-4" />
+          <span className="hidden sm:inline">Add Vehicle</span>
+          <span className="sm:hidden">Add</span>
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="flex gap-2 mb-6">
-        {[
-          { id: 'all', label: `All (${vehicles.length})` },
-          { id: 'active', label: `Active (${vehicles.filter((v) => v.isActive).length})` },
-          { id: 'inactive', label: `Inactive (${vehicles.filter((v) => !v.isActive).length})` },
-        ].map((f) => (
-          <button
-            key={f.id}
-            onClick={() => setFilter(f.id)}
-            className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
-              filter === f.id
-                ? 'bg-slate-900 text-white'
-                : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'
-            }`}
-          >
-            {f.label}
-          </button>
-        ))}
+      {/* Search & Filters */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Search vehicles..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
+          />
+        </div>
+        <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0 scrollbar-hide">
+          {[
+            { id: 'all', label: 'All' },
+            { id: 'active', label: 'Active' },
+            { id: 'inactive', label: 'Inactive' },
+          ].map((f) => (
+            <button
+              key={f.id}
+              onClick={() => setFilter(f.id)}
+              className={`px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap transition-all ${
+                filter === f.id
+                  ? 'bg-slate-900 text-white shadow-sm'
+                  : 'bg-white border border-slate-200 text-slate-600 hover:border-slate-300'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
       </div>
 
-      {/* Table */}
-      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
+      {/* Mobile: Card Layout */}
+      <div className="sm:hidden space-y-3">
+        {filteredVehicles.map((vehicle) => (
+          <div
+            key={vehicle.id}
+            className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm"
+          >
+            <div
+              className="p-4 flex items-center gap-3"
+              onClick={() => toggleCard(vehicle.id)}
+            >
+              <div className="w-14 h-14 rounded-lg bg-slate-100 overflow-hidden flex-shrink-0">
+                {vehicle.images?.[0] ? (
+                  <img
+                    src={vehicle.images[0]}
+                    alt={vehicle.name}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-slate-400">
+                    <Car className="w-5 h-5" />
+                  </div>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <p className="font-semibold text-slate-900 text-sm truncate">{vehicle.name}</p>
+                  <span
+                    className={`shrink-0 px-1.5 py-0.5 rounded-full text-[10px] font-medium ${
+                      vehicle.isActive
+                        ? 'bg-emerald-100 text-emerald-700'
+                        : 'bg-red-100 text-red-700'
+                    }`}
+                  >
+                    {vehicle.isActive ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
+                <p className="text-slate-500 text-xs mt-0.5">
+                  {vehicle.brand} {vehicle.model} · {vehicle.type}
+                </p>
+                <p className="text-amber-600 font-bold text-sm mt-1">
+                  {formatNaira(vehicle.pricePerDay)}
+                  <span className="text-slate-400 font-normal text-xs">/day</span>
+                </p>
+              </div>
+              <div className="shrink-0">
+                {expandedCard === vehicle.id ? (
+                  <ChevronUp className="w-5 h-5 text-slate-400" />
+                ) : (
+                  <ChevronDown className="w-5 h-5 text-slate-400" />
+                )}
+              </div>
+            </div>
+
+            {expandedCard === vehicle.id && (
+              <div className="px-4 pb-4 border-t border-slate-100 pt-3 space-y-3">
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <MapPin className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-xs">{vehicle.location || 'N/A'}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Tag className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-xs">{vehicle.transmission}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Car className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-xs">{vehicle.seats} seats</span>
+                  </div>
+                  {vehicle.driverPhone && (
+                    <div className="flex items-center gap-2 text-slate-600">
+                      <Phone className="w-3.5 h-3.5 text-slate-400" />
+                      <span className="text-xs">{vehicle.driverPhone}</span>
+                    </div>
+                  )}
+                </div>
+
+                {vehicle.features?.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5">
+                    {vehicle.features.slice(0, 4).map((feat, i) => (
+                      <span
+                        key={i}
+                        className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md text-[10px] font-medium"
+                      >
+                        {feat}
+                      </span>
+                    ))}
+                    {vehicle.features.length > 4 && (
+                      <span className="px-2 py-0.5 bg-slate-100 text-slate-500 rounded-md text-[10px]">
+                        +{vehicle.features.length - 4}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex gap-2 pt-2">
+                  {vehicle.isActive ? (
+                    <>
+                      <button
+                        onClick={() => openEdit(vehicle)}
+                        className="flex-1 bg-amber-50 text-amber-700 py-2 rounded-lg text-xs font-medium hover:bg-amber-100 transition-colors"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete(vehicle.id)}
+                        className="flex-1 bg-red-50 text-red-600 py-2 rounded-lg text-xs font-medium hover:bg-red-100 transition-colors"
+                      >
+                        Deactivate
+                      </button>
+                    </>
+                  ) : (
+                    <button
+                      onClick={() => handleRestore(vehicle.id)}
+                      className="w-full bg-emerald-50 text-emerald-700 py-2 rounded-lg text-xs font-medium hover:bg-emerald-100 transition-colors"
+                    >
+                      Restore
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+
+        {filteredVehicles.length === 0 && (
+          <div className="text-center py-12 bg-white rounded-xl border border-slate-200">
+            <Car className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <p className="text-slate-400 text-sm">No vehicles found</p>
+          </div>
+        )}
+      </div>
+
+      {/* Desktop: Table Layout */}
+      <div className="hidden sm:block bg-white rounded-xl border border-slate-200 overflow-hidden shadow-sm">
         <div className="overflow-x-auto">
           <table className="w-full text-left text-sm">
             <thead>
-              <tr className="border-b border-slate-100">
-                <th className="px-6 py-3 font-medium text-slate-500">Vehicle</th>
-                <th className="px-6 py-3 font-medium text-slate-500">Type</th>
-                <th className="px-6 py-3 font-medium text-slate-500">Price/Day</th>
-                <th className="px-6 py-3 font-medium text-slate-500">Location</th>
-                <th className="px-6 py-3 font-medium text-slate-500">Status</th>
-                <th className="px-6 py-3 font-medium text-slate-500"></th>
+              <tr className="border-b border-slate-100 bg-slate-50/50">
+                <th className="px-6 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Vehicle</th>
+                <th className="px-6 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Type</th>
+                <th className="px-6 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Price/Day</th>
+                <th className="px-6 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Location</th>
+                <th className="px-6 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider">Status</th>
+                <th className="px-6 py-3.5 font-semibold text-slate-500 text-xs uppercase tracking-wider"></th>
               </tr>
             </thead>
             <tbody>
               {filteredVehicles.map((vehicle) => (
                 <tr
                   key={vehicle.id}
-                  className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50"
+                  className="border-b border-slate-50 last:border-0 hover:bg-slate-50/50 transition-colors"
                 >
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
@@ -262,7 +423,7 @@ export default function AdminVehicles() {
                           />
                         ) : (
                           <div className="w-full h-full flex items-center justify-center text-slate-400 text-xs">
-                            No img
+                            <ImageIcon className="w-4 h-4" />
                           </div>
                         )}
                       </div>
@@ -275,11 +436,11 @@ export default function AdminVehicles() {
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-xs font-medium">
+                    <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full text-xs font-medium">
                       {vehicle.type}
                     </span>
                   </td>
-                  <td className="px-6 py-4 font-medium text-slate-900">
+                  <td className="px-6 py-4 font-semibold text-slate-900">
                     {formatNaira(vehicle.pricePerDay)}
                   </td>
                   <td className="px-6 py-4 text-slate-600">
@@ -287,7 +448,7 @@ export default function AdminVehicles() {
                   </td>
                   <td className="px-6 py-4">
                     <span
-                      className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                      className={`px-2.5 py-1 rounded-full text-xs font-medium ${
                         vehicle.isActive
                           ? 'bg-emerald-100 text-emerald-700'
                           : 'bg-red-100 text-red-700'
@@ -302,13 +463,13 @@ export default function AdminVehicles() {
                         <>
                           <button
                             onClick={() => openEdit(vehicle)}
-                            className="text-sm text-amber-600 hover:text-amber-700 font-medium px-2 py-1 rounded hover:bg-amber-50 transition-colors"
+                            className="text-sm text-amber-600 hover:text-amber-700 font-medium px-3 py-1.5 rounded-lg hover:bg-amber-50 transition-colors"
                           >
                             Edit
                           </button>
                           <button
                             onClick={() => handleDelete(vehicle.id)}
-                            className="text-sm text-red-600 hover:text-red-700 font-medium px-2 py-1 rounded hover:bg-red-50 transition-colors"
+                            className="text-sm text-red-600 hover:text-red-700 font-medium px-3 py-1.5 rounded-lg hover:bg-red-50 transition-colors"
                           >
                             Deactivate
                           </button>
@@ -316,7 +477,7 @@ export default function AdminVehicles() {
                       ) : (
                         <button
                           onClick={() => handleRestore(vehicle.id)}
-                          className="text-sm text-emerald-600 hover:text-emerald-700 font-medium px-2 py-1 rounded hover:bg-emerald-50 transition-colors"
+                          className="text-sm text-emerald-600 hover:text-emerald-700 font-medium px-3 py-1.5 rounded-lg hover:bg-emerald-50 transition-colors"
                         >
                           Restore
                         </button>
@@ -330,28 +491,31 @@ export default function AdminVehicles() {
         </div>
 
         {filteredVehicles.length === 0 && (
-          <div className="text-center py-12 text-slate-400">No vehicles found.</div>
+          <div className="text-center py-12 text-slate-400">
+            <Car className="w-10 h-10 mx-auto mb-3 text-slate-300" />
+            No vehicles found
+          </div>
         )}
       </div>
 
       {/* Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-xl font-bold text-slate-900">
+        <div className="fixed inset-0 bg-black/60 flex items-end sm:items-center justify-center z-50 sm:p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-t-2xl sm:rounded-2xl w-full sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white px-5 sm:px-6 py-4 border-b border-slate-100 flex justify-between items-center z-10">
+              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
                 {editingVehicle ? 'Edit Vehicle' : 'Add Vehicle'}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
+                className="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg hover:bg-slate-100 transition-colors"
               >
-                ✕
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="p-5 sm:p-6 space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {[
                   { name: 'name', label: 'Name', type: 'text', required: true },
                   { name: 'brand', label: 'Brand', type: 'text', required: true },
@@ -363,8 +527,9 @@ export default function AdminVehicles() {
                   { name: 'driverPhone', label: 'Driver Phone', type: 'tel', required: false },
                 ].map((field) => (
                   <div key={field.name}>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">
                       {field.label}
+                      {field.required && <span className="text-red-500 ml-0.5">*</span>}
                     </label>
                     <input
                       type={field.type}
@@ -372,7 +537,7 @@ export default function AdminVehicles() {
                       placeholder={
                         field.name === 'driverPhone' ? '+234 801 234 5678' : undefined
                       }
-                      className="w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 text-slate-900 focus:outline-none focus:border-amber-500"
+                      className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
                       value={form[field.name]}
                       onChange={(e) =>
                         setForm({ ...form, [field.name]: e.target.value })
@@ -382,11 +547,9 @@ export default function AdminVehicles() {
                 ))}
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Type
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Type</label>
                   <select
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 text-slate-900 focus:outline-none focus:border-amber-500"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                     value={form.type}
                     onChange={(e) => setForm({ ...form, type: e.target.value })}
                   >
@@ -400,11 +563,9 @@ export default function AdminVehicles() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Transmission
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Transmission</label>
                   <select
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 text-slate-900 focus:outline-none focus:border-amber-500"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                     value={form.transmission}
                     onChange={(e) =>
                       setForm({ ...form, transmission: e.target.value })
@@ -416,11 +577,9 @@ export default function AdminVehicles() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Fuel Type
-                  </label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Fuel Type</label>
                   <select
-                    className="w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 text-slate-900 focus:outline-none focus:border-amber-500"
+                    className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500"
                     value={form.fuelType}
                     onChange={(e) => setForm({ ...form, fuelType: e.target.value })}
                   >
@@ -433,43 +592,50 @@ export default function AdminVehicles() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Description
-                </label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Description</label>
                 <textarea
                   rows={3}
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 text-slate-900 focus:outline-none focus:border-amber-500 resize-none"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 resize-none transition-all"
                   value={form.description}
                   onChange={(e) => setForm({ ...form, description: e.target.value })}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Features (comma separated)
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Features <span className="text-slate-400 font-normal">(comma separated)</span>
                 </label>
                 <input
                   type="text"
                   placeholder="AC, GPS, Bluetooth, Reverse Camera"
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 text-slate-900 focus:outline-none focus:border-amber-500"
+                  className="w-full border border-slate-200 rounded-xl px-4 py-3 bg-slate-50 text-slate-900 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all"
                   value={form.features}
                   onChange={(e) => setForm({ ...form, features: e.target.value })}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Images {editingVehicle ? '(leave empty to keep current)' : ''}
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
+                  Images {editingVehicle ? <span className="text-slate-400 font-normal">(leave empty to keep current)</span> : ''}
                 </label>
-                <input
-                  type="file"
-                  multiple
-                  accept="image/*"
-                  className="w-full border border-slate-200 rounded-lg px-3 py-2.5 bg-slate-50 text-sm"
-                  onChange={(e) => setImages(Array.from(e.target.files))}
-                />
+                <div className="border-2 border-dashed border-slate-200 rounded-xl p-6 text-center hover:border-amber-300 transition-colors cursor-pointer">
+                  <input
+                    type="file"
+                    multiple
+                    accept="image/*"
+                    className="hidden"
+                    id="vehicle-images"
+                    onChange={(e) => setImages(Array.from(e.target.files))}
+                  />
+                  <label htmlFor="vehicle-images" className="cursor-pointer block">
+                    <ImageIcon className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <p className="text-sm text-slate-500 font-medium">Click to upload images</p>
+                    <p className="text-xs text-slate-400 mt-1">PNG, JPG up to 5MB each</p>
+                  </label>
+                </div>
                 {images.length > 0 && (
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-xs text-emerald-600 mt-2 font-medium flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" />
                     {images.length} file(s) selected
                   </p>
                 )}
@@ -478,7 +644,7 @@ export default function AdminVehicles() {
               <button
                 type="submit"
                 disabled={submitting}
-                className="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-slate-300 text-slate-950 py-3 rounded-xl font-bold transition-colors"
+                className="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-slate-300 text-slate-950 py-3.5 rounded-xl font-bold text-sm transition-colors shadow-sm"
               >
                 {submitting
                   ? 'Saving...'
