@@ -111,7 +111,7 @@ const createBooking = async (req, res) => {
   }
 };
 
-// VERIFY PAYMENT — Returns full booking with vehicle driverPhone
+// VERIFY PAYMENT
 const verifyPayment = async (req, res) => {
   try {
     const { reference } = req.body;
@@ -161,7 +161,7 @@ const verifyPayment = async (req, res) => {
   }
 };
 
-// GET USER BOOKINGS — Exclude driverPhone from vehicle
+// GET USER BOOKINGS
 const getMyBookings = async (req, res) => {
   try {
     const bookings = await prisma.booking.findMany({
@@ -172,7 +172,6 @@ const getMyBookings = async (req, res) => {
             id: true, name: true, brand: true, model: true, type: true,
             seats: true, transmission: true, fuelType: true, images: true,
             pricePerDay: true, location: true,
-            // driverPhone is intentionally excluded
           }
         }, 
         payment: true, 
@@ -186,7 +185,7 @@ const getMyBookings = async (req, res) => {
   }
 };
 
-// GET SINGLE BOOKING — Include driverPhone only for own booking
+// GET SINGLE BOOKING
 const getBooking = async (req, res) => {
   try {
     const { id } = req.params;

@@ -9,7 +9,7 @@ const registerSchema = z.object({
   email: z.string().email('Invalid email address'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
   fullName: z.string().min(2, 'Full name is required'),
-  phone: z.string().optional(),
+  phone: z.string().min(10, 'Phone number is required and must be at least 10 digits'),
 });
 
 const loginSchema = z.object({
@@ -41,8 +41,8 @@ const register = async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
-      data: { email, passwordHash, fullName, phone: phone || null },
-      select: { id: true, email: true, fullName: true, role: true, emailVerified: true, createdAt: true }
+      data: { email, passwordHash, fullName, phone },
+      select: { id: true, email: true, fullName: true, phone: true, role: true, emailVerified: true, createdAt: true }
     });
 
     const verificationToken = crypto.randomBytes(32).toString('hex');
@@ -197,6 +197,7 @@ const login = async (req, res) => {
           id: user.id,
           email: user.email,
           fullName: user.fullName,
+          phone: user.phone,
           role: user.role,
           emailVerified: user.emailVerified,
         },

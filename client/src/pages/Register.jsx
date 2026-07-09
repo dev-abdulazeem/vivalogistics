@@ -102,18 +102,21 @@ export default function Register() {
 
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
-                Phone <span className="text-slate-400 font-normal">(optional)</span>
+                Phone Number <span className="text-red-500">*</span>
               </label>
               <div className="relative">
                 <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
                   type="tel"
+                  required
+                  minLength={10}
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-4 py-3.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors placeholder:text-slate-400"
                   placeholder="+234 800 000 0000"
                   value={form.phone}
                   onChange={(e) => setForm({ ...form, phone: e.target.value })}
                 />
               </div>
+              <p className="text-xs text-slate-400 mt-1">Required for booking confirmations and admin contact</p>
             </div>
 
             <div>

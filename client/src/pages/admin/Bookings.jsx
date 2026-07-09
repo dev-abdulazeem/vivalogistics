@@ -3,7 +3,7 @@ import api from '../../api/axios';
 import { formatNaira } from '../../utils/formatCurrency';
 import { format } from 'date-fns';
 import toast from 'react-hot-toast';
-import { CheckCircle, XCircle, AlertTriangle, Clock, ShieldCheck, Zap } from 'lucide-react';
+import { CheckCircle, XCircle, AlertTriangle, Clock, ShieldCheck, Zap, Phone } from 'lucide-react';
 
 export default function AdminBookings() {
   const [bookings, setBookings] = useState([]);
@@ -154,6 +154,12 @@ export default function AdminBookings() {
                   <td className="px-4 py-3">
                     <p className="font-medium text-slate-900">{booking.user?.fullName}</p>
                     <p className="text-slate-500 text-xs">{booking.user?.email}</p>
+                    {booking.user?.phone && (
+                      <p className="text-emerald-600 text-xs flex items-center gap-1 mt-0.5">
+                        <Phone className="w-3 h-3" />
+                        {booking.user.phone}
+                      </p>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-slate-600">{booking.vehicle?.name}</td>
                   <td className="px-4 py-3 text-slate-600 text-xs">
@@ -242,9 +248,15 @@ export default function AdminBookings() {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
           <div className="bg-white rounded-2xl p-6 max-w-md w-full">
             <h3 className="text-lg font-bold text-slate-900 mb-2">Verify Vehicle Return</h3>
-            <p className="text-slate-500 text-sm mb-4">
+            <p className="text-slate-500 text-sm mb-1">
               Booking: {verifyModal.vehicle?.name} — {verifyModal.user?.fullName}
             </p>
+            {verifyModal.user?.phone && (
+              <p className="text-emerald-600 text-sm flex items-center gap-1 mb-4">
+                <Phone className="w-4 h-4" />
+                {verifyModal.user.phone}
+              </p>
+            )}
             
             {Number(verifyModal.extraCharges) > 0 && (
               <div className="p-3 bg-red-50 border border-red-200 rounded-lg mb-4">
