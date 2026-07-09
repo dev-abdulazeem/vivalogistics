@@ -1,8 +1,8 @@
-import { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import api from '../api/axios';
-import { formatNaira } from '../utils/formatCurrency';
-import { useAuthStore } from '../store/authStore';
+import { useEffect, useState, useRef } from "react";
+import { Link } from "react-router-dom";
+import api from "../api/axios";
+import { formatNaira } from "../utils/formatCurrency";
+import { useAuthStore } from "../store/authStore";
 import {
   ArrowRight,
   Star,
@@ -20,73 +20,74 @@ import {
   CreditCard,
   Calendar,
   AlertCircle,
-  ChevronRight
-} from 'lucide-react';
+  ChevronRight,
+} from "lucide-react";
 
 export default function Home() {
   const { user, isAuthenticated } = useAuthStore();
   const [featured, setFeatured] = useState([]);
-  const [activeCategory, setActiveCategory] = useState('all');
+  const [activeCategory, setActiveCategory] = useState("all");
   const [menuOpen, setMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const [currentCity, setCurrentCity] = useState('Lagos');
+  const [currentCity, setCurrentCity] = useState("Lagos");
   const fleetRef = useRef(null);
   const heroRef = useRef(null);
 
-  const categories = ['all', 'sedan', 'suv', 'bus', 'van'];
+  const categories = ["all", "sedan", "suv", "bus", "van"];
 
   const cities = [
-    { name: 'Lagos', tagline: 'Mainland & Island coverage' },
-    { name: 'Abuja', tagline: 'Airport & city center' },
-    { name: 'Port Harcourt', tagline: 'Trans Amadi to GRA' },
+    { name: "Lagos", tagline: "Mainland & Island coverage" },
+    { name: "Abuja", tagline: "Airport & city center" },
+    { name: "Port Harcourt", tagline: "Trans Amadi to GRA" },
   ];
 
   useEffect(() => {
     fetchFeatured();
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 50);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    const handleScroll = () => setScrolled(window.scrollY > 50);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const fetchFeatured = async () => {
     try {
-      const res = await api.get('/vehicles?limit=6');
+      const res = await api.get("/vehicles?limit=6");
       setFeatured(res.data.data || []);
     } catch (error) {
-      console.error(error);
+      console.error("Failed to fetch featured vehicles:", error);
     }
   };
 
   const filteredVehicles =
-    activeCategory === 'all'
+    activeCategory === "all"
       ? featured
       : featured.filter((v) =>
-          (v.type || '').toLowerCase().includes(activeCategory.toLowerCase())
+          (v.type || "").toLowerCase().includes(activeCategory.toLowerCase())
         );
 
   const scrollToFleet = () => {
-    fleetRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    fleetRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900 antialiased">
-      
+
       {/* Mobile Menu Overlay */}
       {menuOpen && (
         <div className="fixed inset-0 z-[60] bg-white animate-in slide-in-from-right duration-300">
           <div className="flex items-center justify-between p-5 border-b border-slate-100">
             <span className="text-xl font-extrabold text-slate-900">VIVA</span>
-            <button onClick={() => setMenuOpen(false)} className="p-2 hover:bg-slate-50 rounded-full transition-colors">
+            <button
+              onClick={() => setMenuOpen(false)}
+              className="p-2 hover:bg-slate-50 rounded-full transition-colors"
+            >
               <X className="w-6 h-6 text-slate-900" />
             </button>
           </div>
           <div className="p-6 space-y-1">
-            {['Home', 'Vehicles', 'About'].map((item) => (
+            {["Home", "Vehicles", "About"].map((item) => (
               <Link
                 key={item}
-                to={item === 'Home' ? '/' : `/${item.toLowerCase()}`}
+                to={item === "Home" ? "/" : `/${item.toLowerCase()}`}
                 onClick={() => setMenuOpen(false)}
                 className="block py-4 text-lg font-medium text-slate-700 border-b border-slate-50 hover:text-amber-600 transition-colors"
               >
@@ -95,15 +96,35 @@ export default function Home() {
             ))}
             {isAuthenticated ? (
               <>
-                <Link to="/my-bookings" onClick={() => setMenuOpen(false)} className="block py-4 text-lg font-medium text-slate-700 border-b border-slate-50 hover:text-amber-600 transition-colors">My Bookings</Link>
-                <Link to="/profile" onClick={() => setMenuOpen(false)} className="block py-4 text-lg font-medium text-slate-700 border-b border-slate-50 hover:text-amber-600 transition-colors">Profile</Link>
+                <Link
+                  to="/my-bookings"
+                  onClick={() => setMenuOpen(false)}
+                  className="block py-4 text-lg font-medium text-slate-700 border-b border-slate-50 hover:text-amber-600 transition-colors"
+                >
+                  My Bookings
+                </Link>
+                <Link
+                  to="/profile"
+                  onClick={() => setMenuOpen(false)}
+                  className="block py-4 text-lg font-medium text-slate-700 border-b border-slate-50 hover:text-amber-600 transition-colors"
+                >
+                  Profile
+                </Link>
               </>
             ) : (
               <div className="pt-6 space-y-3">
-                <Link to="/login" onClick={() => setMenuOpen(false)} className="block w-full text-center py-4 border border-slate-200 rounded-xl font-semibold text-slate-900 hover:bg-slate-50 transition-colors">
+                <Link
+                  to="/login"
+                  onClick={() => setMenuOpen(false)}
+                  className="block w-full text-center py-4 border border-slate-200 rounded-xl font-semibold text-slate-900 hover:bg-slate-50 transition-colors"
+                >
                   Sign In
                 </Link>
-                <Link to="/register" onClick={() => setMenuOpen(false)} className="block w-full text-center py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors">
+                <Link
+                  to="/register"
+                  onClick={() => setMenuOpen(false)}
+                  className="block w-full text-center py-4 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
+                >
                   Get Started
                 </Link>
               </div>
@@ -112,16 +133,19 @@ export default function Home() {
         </div>
       )}
 
-      {/* HERO SECTION — Better image, no split layout */}
-      <section ref={heroRef} className="relative bg-slate-950 min-h-[85vh] lg:min-h-[90vh] flex flex-col justify-center">
-        {/* Background image — premium black SUV on city road at dusk */}
+      {/* Hero Section */}
+      <section
+        ref={heroRef}
+        className="relative bg-slate-950 min-h-[85vh] lg:min-h-[90vh] flex flex-col justify-center"
+      >
         <div className="absolute inset-0">
           <img
             src="https://images.unsplash.com/photo-1617788138017-80ad40651399?w=1920&q=80"
             alt="Premium SUV on city road"
             className="w-full h-full object-cover"
             onError={(e) => {
-              e.target.src = 'https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1920&q=80';
+              e.target.src =
+                "https://images.unsplash.com/photo-1549317661-bd32c8ce0db2?w=1920&q=80";
             }}
           />
           <div className="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/80 to-slate-950/50" />
@@ -130,8 +154,7 @@ export default function Home() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-6 md:px-10 w-full py-20 lg:py-0">
           <div className="max-w-2xl">
-            
-            {/* City selector */}
+            {/* City Selector */}
             <div className="flex items-center gap-2 mb-8">
               <MapPin className="w-4 h-4 text-amber-500" />
               <div className="flex gap-1">
@@ -141,8 +164,8 @@ export default function Home() {
                     onClick={() => setCurrentCity(city.name)}
                     className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
                       currentCity === city.name
-                        ? 'bg-amber-500 text-slate-900'
-                        : 'bg-white/10 text-white/60 hover:bg-white/20 hover:text-white'
+                        ? "bg-amber-500 text-slate-900"
+                        : "bg-white/10 text-white/60 hover:bg-white/20 hover:text-white"
                     }`}
                   >
                     {city.name}
@@ -161,11 +184,12 @@ export default function Home() {
 
             {/* Subhead */}
             <p className="text-white/50 text-base md:text-lg mb-8 max-w-lg leading-relaxed">
-              Buses, SUVs, and sedans for hire across Lagos, Abuja, and Port Harcourt. 
-              We deliver to your hotel, office, or airport — no need to come to us.
+              Buses, SUVs, and sedans for hire across Lagos, Abuja, and Port
+              Harcourt. We deliver to your hotel, office, or airport — no need
+              to come to us.
             </p>
 
-            {/* CTA */}
+            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-10">
               <button
                 onClick={scrollToFleet}
@@ -192,7 +216,7 @@ export default function Home() {
               )}
             </div>
 
-            {/* Quick info pills */}
+            {/* Quick Info Pills */}
             <div className="flex flex-wrap items-center gap-3 text-xs">
               <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 text-white/50 border border-white/10">
                 <Phone className="w-3 h-3" /> 080-VIVA-LOGISTICS
@@ -207,7 +231,7 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Scroll indicator */}
+        {/* Scroll Indicator */}
         <div className="relative z-10 pb-8 flex justify-center">
           <button
             onClick={scrollToFleet}
@@ -218,7 +242,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* HOW IT WORKS */}
+      {/* How It Works */}
       <section className="py-16 md:py-20 px-6 md:px-10 bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto">
           <div className="mb-10">
@@ -233,21 +257,21 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-8 md:gap-12">
             {[
               {
-                num: '1',
-                title: 'Pick a vehicle online',
-                desc: 'Browse by type, price, or location. Every car has real photos — the one you see is the one you get.',
+                num: "1",
+                title: "Pick a vehicle online",
+                desc: "Browse by type, price, or location. Every car has real photos — the one you see is the one you get.",
                 icon: Car,
               },
               {
-                num: '2',
-                title: 'Pay & confirm',
-                desc: 'Card or bank transfer via Paystack. You get a booking code and driver contact within minutes.',
+                num: "2",
+                title: "Pay & confirm",
+                desc: "Card or bank transfer via Paystack. You get a booking code and driver contact within minutes.",
                 icon: CreditCard,
               },
               {
-                num: '3',
-                title: 'We deliver to you',
-                desc: 'Driver brings the car to your location. Show your ID, sign the checklist, and drive off.',
+                num: "3",
+                title: "We deliver to you",
+                desc: "Driver brings the car to your location. Show your ID, sign the checklist, and drive off.",
                 icon: Calendar,
               },
             ].map((step, i) => (
@@ -261,8 +285,12 @@ export default function Home() {
                   )}
                 </div>
                 <div className="pb-8">
-                  <h3 className="text-base font-semibold text-slate-900 mb-2">{step.title}</h3>
-                  <p className="text-slate-500 text-sm leading-relaxed">{step.desc}</p>
+                  <h3 className="text-base font-semibold text-slate-900 mb-2">
+                    {step.title}
+                  </h3>
+                  <p className="text-slate-500 text-sm leading-relaxed">
+                    {step.desc}
+                  </p>
                 </div>
               </div>
             ))}
@@ -270,8 +298,11 @@ export default function Home() {
         </div>
       </section>
 
-      {/* FLEET SECTION */}
-      <section ref={fleetRef} className="py-16 md:py-20 px-6 md:px-10 bg-slate-50">
+      {/* Fleet Section */}
+      <section
+        ref={fleetRef}
+        className="py-16 md:py-20 px-6 md:px-10 bg-slate-50"
+      >
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6 mb-10">
             <div>
@@ -289,11 +320,11 @@ export default function Home() {
                   onClick={() => setActiveCategory(cat)}
                   className={`px-4 py-2 rounded-full text-sm font-medium capitalize whitespace-nowrap transition-all duration-200 ${
                     activeCategory === cat
-                      ? 'bg-slate-900 text-white'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300'
+                      ? "bg-slate-900 text-white"
+                      : "bg-white text-slate-600 border border-slate-200 hover:border-slate-300"
                   }`}
                 >
-                  {cat === 'all' ? 'All types' : cat}
+                  {cat === "all" ? "All types" : cat}
                 </button>
               ))}
             </div>
@@ -312,7 +343,7 @@ export default function Home() {
                     <img
                       src={
                         vehicle.images?.[0] ||
-                        'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600'
+                        "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=600"
                       }
                       alt={vehicle.name}
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
@@ -325,7 +356,7 @@ export default function Home() {
                     {vehicle.isAvailable === false && (
                       <div className="absolute inset-0 bg-white/70 backdrop-blur-sm flex items-center justify-center">
                         <span className="bg-slate-900 text-white text-xs font-bold px-4 py-2 rounded-full">
-                          Booked until {vehicle.nextAvailable || 'next week'}
+                          Booked until {vehicle.nextAvailable || "next week"}
                         </span>
                       </div>
                     )}
@@ -341,18 +372,23 @@ export default function Home() {
                         </p>
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-sm font-bold text-slate-900">{formatNaira(vehicle.pricePerDay)}</p>
+                        <p className="text-sm font-bold text-slate-900">
+                          {formatNaira(vehicle.pricePerDay)}
+                        </p>
                         <p className="text-[10px] text-slate-400">per day</p>
                       </div>
                     </div>
                     <div className="flex items-center justify-between text-xs text-slate-400 pt-3 border-t border-slate-100">
                       <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" /> {vehicle.location || currentCity}
+                        <MapPin className="w-3 h-3" />{" "}
+                        {vehicle.location || currentCity}
                       </span>
                       {vehicle.avgRating > 0 ? (
                         <span className="flex items-center gap-1">
                           <Star className="w-3 h-3 text-amber-400 fill-amber-400" />
-                          <span className="text-slate-600 font-medium">{vehicle.avgRating}</span>
+                          <span className="text-slate-600 font-medium">
+                            {vehicle.avgRating}
+                          </span>
                         </span>
                       ) : (
                         <span className="text-slate-300">No reviews yet</span>
@@ -375,7 +411,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* WHY US */}
+      {/* Why Us */}
       <section className="py-16 md:py-20 px-6 md:px-10 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="mb-10">
@@ -391,23 +427,23 @@ export default function Home() {
             {[
               {
                 icon: Shield,
-                title: 'Insurance is included',
-                desc: 'Every booking comes with comprehensive cover. If something happens, you are not paying out of pocket.',
+                title: "Insurance is included",
+                desc: "Every booking comes with comprehensive cover. If something happens, you are not paying out of pocket.",
               },
               {
                 icon: Users,
-                title: 'Real people, real support',
-                desc: 'Call us and someone answers. WhatsApp us and we reply. No chatbots, no 48-hour email waits.',
+                title: "Real people, real support",
+                desc: "Call us and someone answers. WhatsApp us and we reply. No chatbots, no 48-hour email waits.",
               },
               {
                 icon: Car,
-                title: 'What you see is what you get',
-                desc: 'The photos on the site are the actual vehicles. We do not use stock images or "representative" photos.',
+                title: "What you see is what you get",
+                desc: "The photos on the site are the actual vehicles. We do not use stock images or 'representative' photos.",
               },
               {
                 icon: AlertCircle,
-                title: 'Cancel up to 24 hours before',
-                desc: 'Plans change. Cancel or modify your booking for free up to a day before your pickup time.',
+                title: "Cancel up to 24 hours before",
+                desc: "Plans change. Cancel or modify your booking for free up to a day before your pickup time.",
               },
             ].map((item) => (
               <div
@@ -417,15 +453,19 @@ export default function Home() {
                 <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center mb-4">
                   <item.icon className="w-4 h-4 text-amber-400" />
                 </div>
-                <h3 className="text-sm font-semibold text-slate-900 mb-2">{item.title}</h3>
-                <p className="text-slate-500 text-sm leading-relaxed">{item.desc}</p>
+                <h3 className="text-sm font-semibold text-slate-900 mb-2">
+                  {item.title}
+                </h3>
+                <p className="text-slate-500 text-sm leading-relaxed">
+                  {item.desc}
+                </p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* TESTIMONIALS */}
+      {/* Testimonials */}
       <section className="py-16 md:py-20 bg-slate-950 px-6 md:px-10">
         <div className="max-w-7xl mx-auto">
           <div className="mb-10">
@@ -440,21 +480,21 @@ export default function Home() {
           <div className="grid md:grid-cols-3 gap-5">
             {[
               {
-                name: 'Chinedu O.',
-                location: 'Lekki, Lagos',
-                text: 'Booked a Hiace for a family trip to Ibadan. Driver was on time, AC worked, and the bus was clean. Will use again.',
+                name: "Chinedu O.",
+                location: "Lekki, Lagos",
+                text: "Booked a Hiace for a family trip to Ibadan. Driver was on time, AC worked, and the bus was clean. Will use again.",
                 rating: 5,
               },
               {
-                name: 'Amina B.',
-                location: 'Wuse, Abuja',
-                text: 'Had to change my pickup location last minute. Called them and they sorted it in 10 minutes. That kind of service is rare.',
+                name: "Amina B.",
+                location: "Wuse, Abuja",
+                text: "Had to change my pickup location last minute. Called them and they sorted it in 10 minutes. That kind of service is rare.",
                 rating: 5,
               },
               {
-                name: 'Tunde A.',
-                location: 'GRA, Port Harcourt',
-                text: 'The Corolla I got looked exactly like the photo. Fuel tank was full, car was washed. Small things, but they matter.',
+                name: "Tunde A.",
+                location: "GRA, Port Harcourt",
+                text: "The Corolla I got looked exactly like the photo. Fuel tank was full, car was washed. Small things, but they matter.",
                 rating: 4,
               },
             ].map((review, i) => (
@@ -464,19 +504,27 @@ export default function Home() {
               >
                 <div className="flex gap-0.5 mb-4">
                   {[...Array(5)].map((_, j) => (
-                    <Star 
-                      key={j} 
-                      className={`w-3 h-3 ${j < review.rating ? 'text-amber-400 fill-amber-400' : 'text-slate-700'}`} 
+                    <Star
+                      key={j}
+                      className={`w-3 h-3 ${
+                        j < review.rating
+                          ? "text-amber-400 fill-amber-400"
+                          : "text-slate-700"
+                      }`}
                     />
                   ))}
                 </div>
-                <p className="text-slate-300 text-sm leading-relaxed mb-6">"{review.text}"</p>
+                <p className="text-slate-300 text-sm leading-relaxed mb-6">
+                  "{review.text}"
+                </p>
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center text-slate-400 font-bold text-xs">
                     {review.name.charAt(0)}
                   </div>
                   <div>
-                    <p className="text-white text-sm font-medium">{review.name}</p>
+                    <p className="text-white text-sm font-medium">
+                      {review.name}
+                    </p>
                     <p className="text-slate-600 text-xs">{review.location}</p>
                   </div>
                 </div>
@@ -486,25 +534,25 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA */}
+      {/* Final CTA */}
       <section className="py-16 md:py-20 px-6 md:px-10 bg-white">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4 tracking-tight">
             {isAuthenticated
-              ? `Need another ride, ${user?.fullName?.split(' ')[0]}?`
-              : 'Book your first ride today'}
+              ? `Need another ride, ${user?.fullName?.split(" ")[0]}?`
+              : "Book your first ride today"}
           </h2>
           <p className="text-slate-500 mb-8 text-base">
             {isAuthenticated
-              ? 'Your account is ready. Browse available vehicles and book in minutes.'
-              : 'No deposit required. Pay when you book, cancel for free up to 24 hours before.'}
+              ? "Your account is ready. Browse available vehicles and book in minutes."
+              : "No deposit required. Pay when you book, cancel for free up to 24 hours before."}
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <Link
-              to={isAuthenticated ? '/vehicles' : '/register'}
+              to={isAuthenticated ? "/vehicles" : "/register"}
               className="bg-slate-900 text-white px-8 py-3 rounded-lg font-semibold text-sm hover:bg-slate-800 transition-all duration-200"
             >
-              {isAuthenticated ? 'Book a vehicle' : 'Create account'}
+              {isAuthenticated ? "Book a vehicle" : "Create account"}
             </Link>
             <Link
               to="/vehicles"

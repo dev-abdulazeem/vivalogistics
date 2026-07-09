@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import api from '../api/axios';
-import { useAuthStore } from '../store/authStore';
-import { formatNaira } from '../utils/formatCurrency';
-import toast from 'react-hot-toast';
-import { Calendar, MapPin, ArrowLeft } from 'lucide-react';
-import { differenceInDays } from 'date-fns';
+import { useEffect, useState } from "react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import api from "../api/axios";
+import { useAuthStore } from "../store/authStore";
+import { formatNaira } from "../utils/formatCurrency";
+import toast from "react-hot-toast";
+import { Calendar, MapPin, ArrowLeft } from "lucide-react";
+import { differenceInDays } from "date-fns";
 
 export default function Booking() {
   const { vehicleId } = useParams();
@@ -15,18 +15,18 @@ export default function Booking() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [form, setForm] = useState({
-    startDate: '',
-    endDate: '',
-    pickupLocation: '',
-    dropoffLocation: '',
+    startDate: "",
+    endDate: "",
+    pickupLocation: "",
+    dropoffLocation: "",
     driverRequired: false,
-    specialRequests: '',
+    specialRequests: "",
   });
 
   useEffect(() => {
     if (!isAuthenticated) {
-      toast.error('Please login to book a vehicle');
-      navigate('/login');
+      toast.error("Please login to book a vehicle");
+      navigate("/login");
       return;
     }
     fetchVehicle();
@@ -36,9 +36,9 @@ export default function Booking() {
     try {
       const res = await api.get(`/vehicles/${vehicleId}`);
       setVehicle(res.data.data);
-      setForm(prev => ({ ...prev, pickupLocation: res.data.data.location || '' }));
+      setForm((prev) => ({ ...prev, pickupLocation: res.data.data.location || "" }));
     } catch (error) {
-      toast.error('Failed to load vehicle');
+      toast.error("Failed to load vehicle");
     } finally {
       setLoading(false);
     }
@@ -65,27 +65,23 @@ export default function Booking() {
 
     const breakdown = calculateBreakdown();
     if (!breakdown || breakdown.days <= 0) {
-      toast.error('Please select valid dates');
+      toast.error("Please select valid dates");
       return;
     }
 
     setSubmitting(true);
 
     try {
-      const res = await api.post('/bookings', {
+      const res = await api.post("/bookings", {
         ...form,
         vehicleId,
         startDate: new Date(form.startDate).toISOString(),
         endDate: new Date(form.endDate).toISOString(),
       });
 
-      const { paymentUrl } = res.data.data;
-
-      // Redirect to Paystack instead of popup
-      window.location.href = paymentUrl;
-
+      window.location.href = res.data.data.paymentUrl;
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Booking failed');
+      toast.error(error.response?.data?.message || "Booking failed");
       setSubmitting(false);
     }
   };
@@ -103,7 +99,10 @@ export default function Booking() {
       <div className="min-h-[60vh] flex items-center justify-center">
         <div className="text-center">
           <p className="text-slate-400 text-lg">Vehicle not found</p>
-          <Link to="/vehicles" className="text-amber-600 font-medium mt-4 inline-block hover:text-amber-700">
+          <Link
+            to="/vehicles"
+            className="text-amber-600 font-medium mt-4 inline-block hover:text-amber-700"
+          >
             Browse vehicles
           </Link>
         </div>
@@ -117,7 +116,7 @@ export default function Booking() {
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
       <div className="bg-white border-b border-slate-200">
-        <div className="max-w-5xl mx-auto px-6 lg:px-8 py-6">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <Link
             to={`/vehicles/${vehicleId}`}
             className="inline-flex items-center gap-2 text-slate-500 hover:text-slate-900 text-sm font-medium transition-colors mb-4"
@@ -125,15 +124,18 @@ export default function Booking() {
             <ArrowLeft className="w-4 h-4" />
             Back to vehicle
           </Link>
-          <h1 className="text-2xl font-bold text-slate-900">Complete Your Booking</h1>
+          <h1 className="text-xl md:text-2xl font-bold text-slate-900">Complete Your Booking</h1>
         </div>
       </div>
 
-      <div className="max-w-5xl mx-auto px-6 lg:px-8 py-8">
-        <div className="grid lg:grid-cols-5 gap-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+        <div className="grid lg:grid-cols-5 gap-6 md:gap-8">
           {/* Form */}
           <div className="lg:col-span-3">
-            <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200 p-6 space-y-6">
+            <form
+              onSubmit={handleSubmit}
+              className="bg-white rounded-2xl border border-slate-200 p-5 md:p-6 space-y-6"
+            >
               {/* Dates */}
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
@@ -145,7 +147,7 @@ export default function Booking() {
                     <input
                       type="date"
                       required
-                      min={new Date().toISOString().split('T')[0]}
+                      min={new Date().toISOString().split("T")[0]}
                       className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
                       value={form.startDate}
                       onChange={(e) => setForm({ ...form, startDate: e.target.value })}
@@ -161,7 +163,7 @@ export default function Booking() {
                     <input
                       type="date"
                       required
-                      min={form.startDate || new Date().toISOString().split('T')[0]}
+                      min={form.startDate || new Date().toISOString().split("T")[0]}
                       className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-lg text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors"
                       value={form.endDate}
                       onChange={(e) => setForm({ ...form, endDate: e.target.value })}
@@ -190,7 +192,8 @@ export default function Booking() {
 
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Drop-off Location <span className="text-slate-400 font-normal">(optional)</span>
+                  Drop-off Location{" "}
+                  <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
                 <div className="relative">
                   <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
@@ -204,7 +207,7 @@ export default function Booking() {
                 </div>
               </div>
 
-              {/* Driver checkbox */}
+              {/* Driver */}
               <div className="flex items-start gap-3 p-4 bg-slate-50 rounded-xl border border-slate-200">
                 <input
                   type="checkbox"
@@ -226,7 +229,8 @@ export default function Booking() {
               {/* Special requests */}
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-2">
-                  Special Requests <span className="text-slate-400 font-normal">(optional)</span>
+                  Special Requests{" "}
+                  <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
                 <textarea
                   rows={3}
@@ -243,7 +247,7 @@ export default function Booking() {
                 disabled={submitting || !breakdown}
                 className="w-full bg-amber-500 hover:bg-amber-400 disabled:bg-slate-300 disabled:cursor-not-allowed text-slate-950 py-4 rounded-xl font-bold transition-colors"
               >
-                {submitting ? 'Redirecting to payment...' : 'Proceed to Payment'}
+                {submitting ? "Redirecting to payment..." : "Proceed to Payment"}
               </button>
 
               <p className="text-center text-xs text-slate-400">
@@ -252,19 +256,18 @@ export default function Booking() {
             </form>
           </div>
 
-          {/* Summary Card */}
+          {/* Summary */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden sticky top-24">
-              {/* Vehicle Preview */}
-              <div className="h-40 overflow-hidden">
+              <div className="h-40 md:h-48 overflow-hidden">
                 <img
-                  src={vehicle.images?.[0] || '/placeholder.jpg'}
+                  src={vehicle.images?.[0] || "/placeholder.jpg"}
                   alt={vehicle.name}
                   className="w-full h-full object-cover"
                 />
               </div>
 
-              <div className="p-6">
+              <div className="p-5 md:p-6">
                 <h3 className="font-bold text-lg text-slate-900">{vehicle.name}</h3>
                 <p className="text-slate-500 text-sm">
                   {vehicle.brand} {vehicle.model} · {vehicle.seats} seats
@@ -275,7 +278,9 @@ export default function Booking() {
                 {breakdown ? (
                   <div className="space-y-3 text-sm">
                     <div className="flex justify-between text-slate-600">
-                      <span>{breakdown.days} day{breakdown.days !== 1 ? 's' : ''} rental</span>
+                      <span>
+                        {breakdown.days} day{breakdown.days !== 1 ? "s" : ""} rental
+                      </span>
                       <span className="font-medium">{formatNaira(breakdown.rentalCost)}</span>
                     </div>
                     <div className="flex justify-between text-slate-600">
@@ -284,7 +289,9 @@ export default function Booking() {
 
                     {form.driverRequired && (
                       <div className="flex justify-between text-slate-600">
-                        <span>Driver fee ({breakdown.days} day{breakdown.days !== 1 ? 's' : ''})</span>
+                        <span>
+                          Driver fee ({breakdown.days} day{breakdown.days !== 1 ? "s" : ""})
+                        </span>
                         <span className="font-medium">{formatNaira(breakdown.driverCost)}</span>
                       </div>
                     )}
@@ -292,7 +299,9 @@ export default function Booking() {
                     <div className="border-t border-slate-100 pt-3 mt-3">
                       <div className="flex justify-between items-center">
                         <span className="font-bold text-slate-900 text-base">Total</span>
-                        <span className="font-bold text-2xl text-slate-900">{formatNaira(breakdown.total)}</span>
+                        <span className="font-bold text-xl md:text-2xl text-slate-900">
+                          {formatNaira(breakdown.total)}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -304,7 +313,8 @@ export default function Booking() {
 
                 <div className="mt-6 p-4 bg-slate-50 rounded-xl">
                   <p className="text-xs text-slate-500 leading-relaxed">
-                    <span className="font-semibold text-slate-700">Free cancellation</span> up to 24 hours before pickup. Full refund guaranteed.
+                    <span className="font-semibold text-slate-700">Free cancellation</span> up to 24
+                    hours before pickup. Full refund guaranteed.
                   </p>
                 </div>
               </div>

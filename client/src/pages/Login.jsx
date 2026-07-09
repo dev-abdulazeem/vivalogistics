@@ -1,15 +1,15 @@
-import { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
-import toast from 'react-hot-toast';
-import { Mail, Lock, Eye, EyeOff, ArrowRight, Send } from 'lucide-react';
-import api from '../api/axios';
+import { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useAuthStore } from "../store/authStore";
+import toast from "react-hot-toast";
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Send } from "lucide-react";
+import api from "../api/axios";
 
 export default function Login() {
-  const [form, setForm] = useState({ email: '', password: '' });
+  const [form, setForm] = useState({ email: "", password: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
-  const [resendEmail, setResendEmail] = useState('');
+  const [resendEmail, setResendEmail] = useState("");
   const [isResending, setIsResending] = useState(false);
   const { login, isLoading } = useAuthStore();
   const navigate = useNavigate();
@@ -18,25 +18,24 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setNeedsVerification(false);
-    
+
     const result = await login(form);
-    
+
     if (result.success) {
-      toast.success('Welcome back!');
+      toast.success("Welcome back!");
       const { user } = useAuthStore.getState();
-      
-      if (user?.role === 'ADMIN') {
-        navigate('/admin');
+
+      if (user?.role === "ADMIN") {
+        navigate("/admin");
       } else {
-        const from = location.state?.from?.pathname || '/';
+        const from = location.state?.from?.pathname || "/";
         navigate(from);
       }
     } else {
-      // Check if login failed because email is not verified
       if (result.needsVerification) {
         setNeedsVerification(true);
         setResendEmail(form.email);
-        toast.error('Please verify your email first');
+        toast.error("Please verify your email first");
       } else {
         toast.error(result.message);
       }
@@ -45,14 +44,14 @@ export default function Login() {
 
   const handleResendVerification = async () => {
     if (!resendEmail) return;
-    
+
     setIsResending(true);
     try {
-      const res = await api.post('/auth/resend-verification', { email: resendEmail });
+      const res = await api.post("/auth/resend-verification", { email: resendEmail });
       toast.success(res.data.message);
       setNeedsVerification(false);
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to resend email');
+      toast.error(error.response?.data?.message || "Failed to resend email");
     } finally {
       setIsResending(false);
     }
@@ -60,7 +59,7 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left side - Image */}
+      {/* Left side — image (hidden on mobile) */}
       <div className="hidden lg:flex lg:w-1/2 relative">
         <img
           src="https://images.unsplash.com/photo-1449965408869-eaa3f722e40d?w=1200"
@@ -71,7 +70,9 @@ export default function Login() {
         <div className="relative z-10 flex flex-col justify-center px-16 text-white">
           <div className="mb-8">
             <span className="text-lg font-extrabold tracking-tight">VIVA</span>
-            <span className="text-[9px] font-semibold tracking-[0.3em] text-amber-500 uppercase block">Logistic</span>
+            <span className="text-[9px] font-semibold tracking-[0.3em] text-amber-500 uppercase block">
+              Logistic
+            </span>
           </div>
           <h2 className="text-4xl font-bold mb-4 leading-tight">Welcome back</h2>
           <p className="text-white/60 text-lg leading-relaxed">
@@ -80,22 +81,25 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-white">
+      {/* Right side — form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-6 md:p-8 bg-white">
         <div className="w-full max-w-md">
+          {/* Mobile logo */}
           <div className="lg:hidden mb-8">
             <span className="text-lg font-extrabold tracking-tight">VIVA</span>
-            <span className="text-[9px] font-semibold tracking-[0.3em] text-amber-500 uppercase block">Logistic</span>
+            <span className="text-[9px] font-semibold tracking-[0.3em] text-amber-500 uppercase block">
+              Logistic
+            </span>
           </div>
 
-          <h2 className="text-3xl font-bold text-slate-900 mb-2">Sign In</h2>
+          <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2">Sign In</h2>
           <p className="text-slate-500 mb-8">Enter your details to continue</p>
 
-          {/* Verification Banner */}
+          {/* Verification banner */}
           {needsVerification && (
             <div className="mb-6 p-4 bg-amber-50 border border-amber-200 rounded-xl">
               <p className="text-sm text-amber-800 mb-3">
-                Your email is not verified. Please check your inbox or resend the verification email.
+                Your email is not verified. Check your inbox or resend the verification email.
               </p>
               <button
                 onClick={handleResendVerification}
@@ -141,7 +145,7 @@ export default function Login() {
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   required
                   className="w-full bg-slate-50 border border-slate-200 rounded-xl pl-11 pr-11 py-3.5 text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-colors placeholder:text-slate-400"
                   placeholder="••••••••"
@@ -160,7 +164,10 @@ export default function Login() {
 
             <div className="flex items-center justify-between text-sm">
               <label className="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" className="rounded border-slate-300 w-4 h-4 text-amber-500 focus:ring-amber-500" />
+                <input
+                  type="checkbox"
+                  className="rounded border-slate-300 w-4 h-4 text-amber-500 focus:ring-amber-500"
+                />
                 <span className="text-slate-500">Remember me</span>
               </label>
               <Link to="/forgot-password" className="text-amber-600 hover:text-amber-700 font-medium">
@@ -185,8 +192,10 @@ export default function Login() {
           </form>
 
           <p className="text-center mt-8 text-slate-500">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-amber-600 hover:text-amber-700 font-semibold">Create one</Link>
+            Don't have an account?{" "}
+            <Link to="/register" className="text-amber-600 hover:text-amber-700 font-semibold">
+              Create one
+            </Link>
           </p>
         </div>
       </div>

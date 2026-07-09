@@ -1,24 +1,21 @@
-import { useEffect, useState } from 'react';
-import { useSearchParams, Link } from 'react-router-dom';
-import api from '../api/axios';
-import { formatNaira } from '../utils/formatCurrency';
-import { format } from 'date-fns';
-import toast from 'react-hot-toast';
+import { useEffect, useState } from "react";
+import { useSearchParams, Link } from "react-router-dom";
+import api from "../api/axios";
+import { formatNaira } from "../utils/formatCurrency";
+import { format } from "date-fns";
+import toast from "react-hot-toast";
 import {
   CheckCircle2,
   Calendar,
   MapPin,
   Phone,
   CreditCard,
-  ShieldCheck,
   Copy,
   ArrowRight,
   Loader2,
   AlertCircle,
-  User,
   Clock,
-  Car,
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function BookingConfirmation() {
   const [searchParams] = useSearchParams();
@@ -26,11 +23,11 @@ export default function BookingConfirmation() {
   const [verifying, setVerifying] = useState(true);
   const [error, setError] = useState(null);
 
-  const reference = searchParams.get('reference') || searchParams.get('trxref');
+  const reference = searchParams.get("reference") || searchParams.get("trxref");
 
   useEffect(() => {
     if (!reference) {
-      setError('No payment reference found.');
+      setError("No payment reference found.");
       setVerifying(false);
       return;
     }
@@ -39,31 +36,31 @@ export default function BookingConfirmation() {
 
   const verifyPayment = async () => {
     try {
-      const res = await api.post('/bookings/verify-payment', { reference });
-      
+      const res = await api.post("/bookings/verify-payment", { reference });
+
       if (res.data.success) {
         setBooking(res.data.data);
-        toast.success('Payment successful! Your booking is confirmed.');
+        toast.success("Payment successful! Your booking is confirmed.");
       } else {
-        setError('Payment verification failed.');
+        setError("Payment verification failed.");
       }
     } catch (err) {
-      console.error('Payment verification error:', err);
-      
-      // Fallback: try to find booking by reference
+      console.error("Payment verification error:", err);
+
       try {
-        const bookingRes = await api.get('/bookings/my');
+        const bookingRes = await api.get("/bookings/my");
         const found = bookingRes.data.data.find(
-          (b) => b.paymentReference === reference || b.payment?.paystackReference === reference
+          (b) =>
+            b.paymentReference === reference || b.payment?.paystackReference === reference
         );
-        
+
         if (found) {
           setBooking(found);
         } else {
-          setError('Could not verify payment. Please check your bookings.');
+          setError("Could not verify payment. Please check your bookings.");
         }
       } catch {
-        setError('Payment verification failed. Please contact support.');
+        setError("Payment verification failed. Please contact support.");
       }
     } finally {
       setVerifying(false);
@@ -72,12 +69,12 @@ export default function BookingConfirmation() {
 
   const copyReference = () => {
     navigator.clipboard.writeText(reference);
-    toast.success('Reference copied!');
+    toast.success("Reference copied!");
   };
 
   if (verifying) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-6">
         <div className="text-center">
           <Loader2 className="w-10 h-10 text-amber-500 animate-spin mx-auto mb-4" />
           <h2 className="text-xl font-bold text-slate-900">Verifying your payment...</h2>
@@ -116,25 +113,24 @@ export default function BookingConfirmation() {
   const isDriverRequested = booking.driverRequired;
 
   return (
-    <div className="min-h-screen bg-slate-50 py-12 px-6">
+    <div className="min-h-screen bg-slate-50 py-8 md:py-12 px-4 sm:px-6">
       <div className="max-w-2xl mx-auto">
-        {/* Success Header */}
+        {/* Success header */}
         <div className="text-center mb-8">
           <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <CheckCircle2 className="w-8 h-8 text-emerald-600" />
           </div>
-          <h1 className="text-3xl font-bold text-slate-900">Booking Confirmed!</h1>
+          <h1 className="text-2xl md:text-3xl font-bold text-slate-900">Booking Confirmed!</h1>
           <p className="text-slate-500 mt-2">
             Your payment was successful. Here are your booking details.
           </p>
         </div>
 
-        {/* Main Card */}
+        {/* Main card */}
         <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden mb-6">
-          {/* Vehicle Image */}
-          <div className="h-56 bg-slate-100 relative">
+          <div className="h-48 md:h-56 bg-slate-100 relative">
             <img
-              src={vehicle?.images?.[0] || '/placeholder.jpg'}
+              src={vehicle?.images?.[0] || "/placeholder.jpg"}
               alt={vehicle?.name}
               className="w-full h-full object-cover"
             />
@@ -145,17 +141,19 @@ export default function BookingConfirmation() {
             </div>
           </div>
 
-          <div className="p-6">
-            <h2 className="text-xl font-bold text-slate-900">{vehicle?.name}</h2>
+          <div className="p-5 md:p-6">
+            <h2 className="text-lg md:text-xl font-bold text-slate-900">{vehicle?.name}</h2>
             <p className="text-slate-500 text-sm">
               {vehicle?.brand} {vehicle?.model} · {vehicle?.seats} seats · {vehicle?.transmission}
             </p>
 
-            {/* Booking Reference */}
+            {/* Reference */}
             <div className="mt-5 p-4 bg-slate-50 rounded-xl border border-slate-100">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">Booking Reference</p>
+                  <p className="text-xs text-slate-400 uppercase tracking-wider font-medium">
+                    Booking Reference
+                  </p>
                   <p className="text-sm font-mono font-bold text-slate-900 mt-0.5">{reference}</p>
                 </div>
                 <button
@@ -168,23 +166,26 @@ export default function BookingConfirmation() {
               </div>
             </div>
 
-            {/* Details Grid */}
+            {/* Details */}
             <div className="mt-5 space-y-3">
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-lg bg-amber-50 flex items-center justify-center shrink-0">
                   <Calendar className="w-4 h-4 text-amber-600" />
                 </div>
                 <div>
                   <p className="text-xs text-slate-400 font-medium">Rental Period</p>
                   <p className="text-sm font-semibold text-slate-900">
-                    {format(new Date(booking.startDate), 'EEEE, MMM d')} — {format(new Date(booking.endDate), 'EEEE, MMM d, yyyy')}
+                    {format(new Date(booking.startDate), "EEEE, MMM d")} —{" "}
+                    {format(new Date(booking.endDate), "EEEE, MMM d, yyyy")}
                   </p>
-                  <p className="text-xs text-slate-400">{booking.totalDays} day{booking.totalDays !== 1 ? 's' : ''}</p>
+                  <p className="text-xs text-slate-400">
+                    {booking.totalDays} day{booking.totalDays !== 1 ? "s" : ""}
+                  </p>
                 </div>
               </div>
 
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-lg bg-blue-50 flex items-center justify-center shrink-0">
                   <MapPin className="w-4 h-4 text-blue-600" />
                 </div>
                 <div>
@@ -195,7 +196,7 @@ export default function BookingConfirmation() {
 
               {booking.dropoffLocation && booking.dropoffLocation !== booking.pickupLocation && (
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-lg bg-purple-50 flex items-center justify-center shrink-0">
                     <MapPin className="w-4 h-4 text-purple-600" />
                   </div>
                   <div>
@@ -206,7 +207,7 @@ export default function BookingConfirmation() {
               )}
 
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0">
                   <CreditCard className="w-4 h-4 text-emerald-600" />
                 </div>
                 <div>
@@ -215,14 +216,16 @@ export default function BookingConfirmation() {
                 </div>
               </div>
 
-              {/* DRIVER PHONE — ONLY SHOWS IF DRIVER REQUESTED */}
+              {/* Driver contact */}
               {isDriverRequested && vehicle?.driverPhone && (
                 <div className="flex items-center gap-3 p-3 bg-indigo-50 border border-indigo-100 rounded-xl">
-                  <div className="w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center shrink-0">
                     <Phone className="w-4 h-4 text-indigo-600" />
                   </div>
                   <div className="flex-1">
-                    <p className="text-xs text-indigo-500 font-medium uppercase tracking-wider">Driver Contact</p>
+                    <p className="text-xs text-indigo-500 font-medium uppercase tracking-wider">
+                      Driver Contact
+                    </p>
                     <p className="text-lg font-bold text-indigo-900">{vehicle.driverPhone}</p>
                     <p className="text-xs text-indigo-400">Call or WhatsApp before pickup</p>
                   </div>
@@ -237,55 +240,70 @@ export default function BookingConfirmation() {
 
               {isDriverRequested && !vehicle?.driverPhone && (
                 <div className="flex items-center gap-3 p-3 bg-amber-50 border border-amber-100 rounded-xl">
-                  <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center">
+                  <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
                     <Clock className="w-4 h-4 text-amber-600" />
                   </div>
                   <div>
                     <p className="text-xs text-amber-600 font-medium">Driver Contact</p>
-                    <p className="text-sm font-semibold text-amber-900">Driver will be assigned shortly</p>
-                    <p className="text-xs text-amber-500">You will receive contact details before pickup</p>
+                    <p className="text-sm font-semibold text-amber-900">
+                      Driver will be assigned shortly
+                    </p>
+                    <p className="text-xs text-amber-500">
+                      You will receive contact details before pickup
+                    </p>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Divider */}
             <div className="border-t border-slate-100 my-5" />
 
-            {/* What's Next */}
+            {/* What's next */}
             <div>
               <h3 className="font-bold text-slate-900 mb-3">What happens next?</h3>
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">1</div>
+                  <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                    1
+                  </div>
                   <div>
                     <p className="text-sm font-medium text-slate-900">Confirmation email sent</p>
-                    <p className="text-xs text-slate-500">Check your inbox for booking details and receipt.</p>
+                    <p className="text-xs text-slate-500">
+                      Check your inbox for booking details and receipt.
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">2</div>
+                  <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                    2
+                  </div>
                   <div>
                     <p className="text-sm font-medium text-slate-900">
-                      {isDriverRequested ? 'Your driver will call you' : 'Delivery agent will call you'}
+                      {isDriverRequested ? "Your driver will call you" : "Delivery agent will call you"}
                     </p>
                     <p className="text-xs text-slate-500">30 minutes before pickup time.</p>
                   </div>
                 </div>
                 <div className="flex items-start gap-3">
-                  <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">3</div>
+                  <div className="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">
+                    3
+                  </div>
                   <div>
                     <p className="text-sm font-medium text-slate-900">Pickup & drive</p>
-                    <p className="text-xs text-slate-500">Show your ID and booking reference. Sign the checklist and you are on the road.</p>
+                    <p className="text-xs text-slate-500">
+                      Show your ID and booking reference. Sign the checklist and you are on the road.
+                    </p>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Special Requests */}
+            {/* Special requests */}
             {booking.specialRequests && (
               <div className="mt-5 p-4 bg-amber-50 border border-amber-100 rounded-xl">
-                <p className="text-xs text-amber-700 font-medium uppercase tracking-wider mb-1">Special Requests</p>
+                <p className="text-xs text-amber-700 font-medium uppercase tracking-wider mb-1">
+                  Special Requests
+                </p>
                 <p className="text-sm text-amber-900">{booking.specialRequests}</p>
               </div>
             )}
@@ -293,7 +311,7 @@ export default function BookingConfirmation() {
         </div>
 
         {/* Support */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 md:p-6 mb-6">
           <div className="flex items-start gap-4">
             <div className="w-10 h-10 rounded-lg bg-slate-900 flex items-center justify-center shrink-0">
               <Phone className="w-4 h-4 text-white" />
